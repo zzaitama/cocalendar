@@ -1,5 +1,7 @@
 import type { User } from "@/types"
 
+export const HOME_COORDS = { lat: 37.6879, lon: -122.4702 }
+
 export const USERS: User[] = [
   { id: "dad",     name: "Dad",     color: "#4CAF50", gcalColorId: "2" },
   { id: "mom",     name: "Mom",     color: "#2196F3", gcalColorId: "1" },

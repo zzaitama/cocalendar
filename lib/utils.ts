@@ -1,4 +1,4 @@
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns"
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from "date-fns"
 
 export function formatDate(date: Date | string): string {
   return format(new Date(date), "EEEE, MMMM d")
@@ -25,5 +25,13 @@ export function weekRange(anchor: Date = new Date()): { start: string; end: stri
   return {
     start: startOfWeek(anchor, { weekStartsOn: 1 }).toISOString(),
     end: endOfWeek(anchor, { weekStartsOn: 1 }).toISOString(),
+  }
+}
+
+export function monthRange(anchor: Date = new Date()): { start: string; end: string } {
+  const gridStart = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 })
+  return {
+    start: gridStart.toISOString(),
+    end: addDays(gridStart, 41).toISOString(),
   }
 }
