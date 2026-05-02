@@ -27,7 +27,7 @@ export default async function Home({ searchParams }: { searchParams?: { date?: s
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-gray-950 flex flex-col">
+    <div className="h-screen overflow-hidden bg-white dark:bg-gray-950 flex flex-col">
       <NavHeader activePage="day" />
       <TodayView initialEvents={events} targetDate={searchParams?.date} />
     </div>

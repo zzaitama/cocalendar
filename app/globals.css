@@ -3,8 +3,6 @@
 @tailwind utilities;
 
 body {
-  background: #030712; /* gray-950 — always dark for wall display */
-  color: #f9fafb;
   font-family: var(--font-geist-sans), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

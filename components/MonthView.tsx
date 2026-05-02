@@ -47,7 +47,7 @@ export function MonthView({ initialEvents, initialMonthStart }: MonthViewProps) 
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(() => fetchNow(monthStart), 30_000)
+    const interval = setInterval(() => fetchNow(monthStart), 60_000)
     return () => clearInterval(interval)
   }, [monthStart, fetchNow])
 
@@ -56,7 +56,7 @@ export function MonthView({ initialEvents, initialMonthStart }: MonthViewProps) 
     return () => clearInterval(interval)
   }, [])
 
-  const stale = tick - lastFetchedAt > 90_000
+  const stale = tick - lastFetchedAt > 120_000
 
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 })
   const days = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i))
@@ -99,20 +99,20 @@ export function MonthView({ initialEvents, initialMonthStart }: MonthViewProps) 
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={goToPrev}
-              className="w-14 h-14 rounded-xl bg-gray-800 text-white text-3xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+              className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-3xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               aria-label="Previous month"
             >
               ‹
             </button>
             <div className="text-center">
-              <p className="text-xl text-gray-300">{monthLabel}</p>
-              {stale && (
-                <p className="text-sm text-gray-600 mt-0.5">Sync paused — check connection</p>
-              )}
+              <p className="text-xl text-gray-600 dark:text-gray-300">{monthLabel}</p>
+              <p className={`text-sm mt-0.5 ${stale ? "text-amber-500" : "text-gray-500 dark:text-gray-600"}`}>
+                {stale ? "Sync stale" : `Synced ${format(new Date(lastFetchedAt), "h:mm a")}`}
+              </p>
             </div>
             <button
               onClick={goToNext}
-              className="w-14 h-14 rounded-xl bg-gray-800 text-white text-3xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+              className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-3xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               aria-label="Next month"
             >
               ›
@@ -137,16 +137,16 @@ export function MonthView({ initialEvents, initialMonthStart }: MonthViewProps) 
               const dots = dayEvents.slice(0, MAX_DOTS)
 
               const circleClass =
-                today && selected ? "bg-white text-gray-950"
+                today && selected ? "bg-gray-950 dark:bg-white text-white dark:text-gray-950"
                 : selected        ? "bg-indigo-500 text-white"
-                : today           ? "ring-2 ring-white text-white"
-                :                   "text-gray-400"
+                : today           ? "ring-2 ring-gray-950 dark:ring-white text-gray-950 dark:text-white"
+                :                   "text-gray-600 dark:text-gray-400"
 
               return (
                 <button
                   key={day.toISOString()}
                   onClick={() => setSelectedDate(startOfDay(day))}
-                  className={`flex flex-col items-center py-1 rounded-xl transition-colors active:bg-gray-800 ${
+                  className={`flex flex-col items-center py-1 rounded-xl transition-colors active:bg-gray-100 dark:active:bg-gray-800 ${
                     !inMonth ? "opacity-30" : ""
                   }`}
                 >
@@ -175,13 +175,13 @@ export function MonthView({ initialEvents, initialMonthStart }: MonthViewProps) 
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gray-800 shrink-0" />
+        <div className="h-px bg-gray-200 dark:bg-gray-800 shrink-0" />
 
         {/* Section 2 — Event list (scrollable) */}
         <div className="flex-1 overflow-y-auto px-4 py-4 pb-28">
           <p className="text-gray-500 text-sm uppercase tracking-widest mb-4">{selectedDateLabel}</p>
           {selectedEvents.length === 0 ? (
-            <p className="text-2xl text-gray-600">Nothing scheduled</p>
+            <p className="text-2xl text-gray-500 dark:text-gray-600">Nothing scheduled</p>
           ) : (
             <div className="flex flex-col gap-3">
               {selectedEvents.map(e => (

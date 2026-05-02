@@ -17,27 +17,27 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
     <div
       onClick={onClick}
       role={onClick ? "button" : undefined}
-      className={`flex overflow-hidden rounded-xl bg-gray-800 ${
-        featured ? "min-h-28" : compact ? "min-h-14" : "min-h-14"
-      } ${onClick ? "cursor-pointer hover:bg-gray-750 active:bg-gray-700" : ""}`}
+      className={`flex overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 ${
+        featured ? "min-h-28" : "min-h-14"
+      } ${onClick ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-gray-300 dark:active:bg-gray-600" : ""}`}
       style={{ "--person-color": color } as React.CSSProperties}
     >
       <div className={`flex-shrink-0 bg-[var(--person-color)] ${compact ? "w-1.5" : "w-2"}`} />
       <div className="flex flex-col justify-center px-3 py-2 gap-0.5 min-w-0">
         <p
-          className={`font-semibold text-white leading-tight truncate ${
-            featured ? "text-4xl" : compact ? "text-base" : "text-2xl"
+          className={`font-semibold text-gray-950 dark:text-white leading-tight truncate ${
+            featured ? "text-4xl" : compact ? "text-lg" : "text-2xl"
           }`}
         >
           {event.title}
         </p>
         {compact && !event.isAllDay && (
-          <p className="text-gray-500 text-xs leading-tight truncate">
+          <p className="text-gray-500 text-sm leading-tight truncate">
             {formatTime(event.start)}
           </p>
         )}
         {!compact && (
-          <p className={`text-gray-400 ${featured ? "text-2xl" : "text-xl"}`}>
+          <p className={`text-gray-600 dark:text-gray-400 ${featured ? "text-2xl" : "text-xl"}`}>
             {formatEventTime(event.start, event.end, event.isAllDay)}
           </p>
         )}

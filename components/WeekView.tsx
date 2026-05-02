@@ -54,7 +54,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
     return () => clearInterval(interval)
   }, [])
 
-  const stale = tick - lastFetchedAt > 90_000
+  const stale = tick - lastFetchedAt > 120_000
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -91,20 +91,20 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
         <div className="flex items-center justify-between px-8 py-4">
           <button
             onClick={goToPrev}
-            className="w-14 h-14 rounded-xl bg-gray-800 text-white text-3xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+            className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-3xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             aria-label="Previous week"
           >
             ‹
           </button>
           <div className="text-center">
-            <p className="text-xl text-gray-300">{weekLabel}</p>
-            {stale && (
-              <p className="text-sm text-gray-600 mt-0.5">Sync paused — check connection</p>
-            )}
+            <p className="text-xl text-gray-600 dark:text-gray-300">{weekLabel}</p>
+            <p className={`text-sm mt-0.5 ${stale ? "text-amber-500" : "text-gray-500 dark:text-gray-600"}`}>
+              {stale ? "Sync stale" : `Synced ${format(new Date(lastFetchedAt), "h:mm a")}`}
+            </p>
           </div>
           <button
             onClick={goToNext}
-            className="w-14 h-14 rounded-xl bg-gray-800 text-white text-3xl flex items-center justify-center hover:bg-gray-700 transition-colors"
+            className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-3xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             aria-label="Next week"
           >
             ›
@@ -121,7 +121,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
                 <div
                   key={day.toISOString()}
                   className={`flex flex-col rounded-xl p-3 ${
-                    today ? "bg-gray-900 ring-1 ring-gray-700" : ""
+                    today ? "bg-gray-50 dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700" : ""
                   }`}
                 >
                   <Link
@@ -130,14 +130,14 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
                   >
                     <p
                       className={`text-sm uppercase tracking-widest ${
-                        today ? "text-white" : "text-gray-500"
+                        today ? "text-gray-950 dark:text-white" : "text-gray-500"
                       }`}
                     >
                       {format(day, "EEE")}
                     </p>
                     <p
                       className={`text-3xl font-bold tabular-nums leading-tight ${
-                        today ? "text-white" : "text-gray-400"
+                        today ? "text-gray-950 dark:text-white" : "text-gray-500 dark:text-gray-400"
                       }`}
                     >
                       {format(day, "d")}

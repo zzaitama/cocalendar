@@ -118,7 +118,7 @@ export function TimeGrid({ events, isToday = true, onEventDrop, onEventClick }: 
             <span className="text-gray-600 text-xs w-14 text-right pr-3 select-none shrink-0">
               {hourLabel(h)}
             </span>
-            <div className="flex-1 border-t border-gray-800" />
+            <div className="flex-1 border-t border-gray-200 dark:border-gray-800" />
           </div>
         ))}
 
@@ -141,11 +141,10 @@ export function TimeGrid({ events, isToday = true, onEventDrop, onEventClick }: 
           return (
             <div
               key={e.id}
-              className={`absolute left-14 right-2 rounded-lg overflow-hidden ${isDrag ? "z-10 shadow-2xl" : ""}`}
+              className={`absolute left-14 right-2 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-900 ${isDrag ? "z-10 shadow-2xl" : ""}`}
               style={{
                 top: t,
                 height: h,
-                backgroundColor: "#1e293b",
                 borderLeft: `4px solid ${color}`,
                 touchAction: "none",
                 transform: isDrag ? "scale(1.02)" : undefined,
@@ -158,8 +157,8 @@ export function TimeGrid({ events, isToday = true, onEventDrop, onEventClick }: 
               onPointerCancel={handlePointerCancel}
             >
               <div className="px-2 py-1.5 min-w-0">
-                <p className="text-white text-sm font-semibold leading-tight truncate">{e.title}</p>
-                <p className="text-gray-400 text-xs">{format(new Date(e.start), "h:mm a")}</p>
+                <p className="text-gray-950 dark:text-white text-sm font-semibold leading-tight truncate">{e.title}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-xs">{format(new Date(e.start), "h:mm a")}</p>
               </div>
             </div>
           )

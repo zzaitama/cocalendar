@@ -90,8 +90,8 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       onKeyDown={handleKeyDown}
     >
-      <div className="w-full sm:max-w-lg bg-gray-900 rounded-t-2xl sm:rounded-2xl p-6 flex flex-col gap-5">
-        <h2 className="text-2xl font-bold text-white">
+      <div className="w-full sm:max-w-lg bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl p-6 flex flex-col gap-5">
+        <h2 className="text-2xl font-bold text-gray-950 dark:text-white">
           {mode === "create" ? "New Event" : "Edit Event"}
         </h2>
 
@@ -102,14 +102,14 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleSave() }}
           placeholder="Event title"
-          className="w-full bg-gray-800 text-white text-2xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-white placeholder:text-gray-600"
+          className="w-full bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-2xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white placeholder:text-gray-400 dark:placeholder:text-gray-600"
         />
 
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full bg-gray-800 text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-white"
+          className="w-full bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
         />
 
         <div className="flex gap-3 items-center">
@@ -117,14 +117,14 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="flex-1 bg-gray-800 text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-white"
+            className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
           />
-          <span className="text-gray-500 text-xl">–</span>
+          <span className="text-gray-400 dark:text-gray-500 text-xl">–</span>
           <input
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="flex-1 bg-gray-800 text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-white"
+            className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
           />
         </div>
 
@@ -134,7 +134,7 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
               key={user.id}
               onClick={() => setColorId(user.gcalColorId)}
               className={`flex-1 min-h-14 rounded-xl text-lg font-semibold transition-all ${
-                colorId === user.gcalColorId ? "ring-2 ring-white scale-105" : "opacity-60"
+                colorId === user.gcalColorId ? "ring-2 ring-gray-950 dark:ring-white scale-105" : "opacity-60"
               }`}
               style={{ backgroundColor: user.color, color: "#fff" }}
             >
@@ -151,7 +151,7 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
               className={`min-h-14 px-5 rounded-xl text-xl font-semibold transition-colors ${
                 confirmDelete
                   ? "bg-red-600 text-white"
-                  : "bg-gray-800 text-red-400 hover:bg-red-900/30"
+                  : "bg-gray-100 dark:bg-gray-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
               }`}
             >
               {confirmDelete ? "Confirm delete" : "Delete"}
@@ -161,14 +161,14 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
             <button
               onClick={onClose}
               disabled={saving}
-              className="min-h-14 px-6 rounded-xl text-xl font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors"
+              className="min-h-14 px-6 rounded-xl text-xl font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving || !title.trim()}
-              className="min-h-14 px-6 rounded-xl text-xl font-semibold bg-white text-gray-950 hover:bg-gray-200 transition-colors disabled:opacity-40"
+              className="min-h-14 px-6 rounded-xl text-xl font-semibold bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
             >
               {saving ? "Saving…" : "Save"}
             </button>

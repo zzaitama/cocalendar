@@ -23,7 +23,7 @@ export default async function MonthPage() {
   const monthStart = startOfMonth(new Date()).toISOString()
 
   return (
-    <div className="h-screen overflow-hidden bg-gray-950 flex flex-col">
+    <div className="h-screen overflow-hidden bg-white dark:bg-gray-950 flex flex-col">
       <NavHeader activePage="month" />
       <MonthView initialEvents={events} initialMonthStart={monthStart} />
     </div>
