@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { addDays, isSameDay, startOfDay, isToday, format, startOfWeek, addWeeks, subWeeks } from "date-fns"
+import { addDays, isSameDay, startOfDay, isToday, format, startOfWeek } from "date-fns"
 import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
@@ -105,7 +105,6 @@ function MobileWeekGrid({
   }
 
   const selectedEvents = eventsForDay(selectedDay)
-  const now = new Date()
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -198,7 +197,6 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
   const [modal, setModal] = useState<ModalState | null>(null)
   const [selectedPeople, setSelectedPeople] = useState<string[]>([])
   const [selectedDay, setSelectedDay] = useState<Date>(() => {
-    const today = new Date()
     const ws = startOfDay(new Date(initialWeekStart))
     const days = Array.from({ length: 7 }, (_, i) => addDays(ws, i))
     return days.find(d => isToday(d)) ?? ws

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import type { ShoppingListData, ShoppingStore, ShoppingItem } from "@/types"
+import type { ShoppingListData, ShoppingStore } from "@/types"
 
 const CARD_COLORS = [
   { label: "Slate",  bg: "#f1f5f9", dark: "#1e293b", accent: "#64748b" },
@@ -350,7 +350,7 @@ export function ShoppingList({ initialData }: ShoppingListProps) {
               onDeleteItem={itemId => deleteItem(store.id, itemId)}
               onAddItem={text => addItem(store.id, text)}
               onSettingsOpen={() => setSettingsFor(store.id)}
-              onDragStart={e => handleDragStart(store.id)}
+              onDragStart={_e => handleDragStart(store.id)}
               onDragOver={e => handleDragOver(e, store.id)}
               onDrop={e => handleDrop(e, store.id)}
               isDraggingOver={dragOverId === store.id}
