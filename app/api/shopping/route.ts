@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { kv } from "@vercel/kv"
+import { Redis } from "@upstash/redis"
+
+const kv = Redis.fromEnv()
 import type { ShoppingListData } from "@/types"
 
 const DEFAULT_DATA: ShoppingListData = {

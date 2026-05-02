@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { kv } from "@vercel/kv"
+import { Redis } from "@upstash/redis"
+
+const kv = Redis.fromEnv()
 import { NavHeader } from "@/components/NavHeader"
 import { ShoppingList } from "@/components/ShoppingList"
 import type { ShoppingListData } from "@/types"
