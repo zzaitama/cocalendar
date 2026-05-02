@@ -8,16 +8,17 @@ import type { CalendarEvent } from "@/types"
 interface EventModalProps {
   mode: "create" | "edit"
   event?: CalendarEvent
+  defaultDate?: string
   onClose: () => void
   onSaved: () => void
 }
 
-export function EventModal({ mode, event, onClose, onSaved }: EventModalProps) {
+export function EventModal({ mode, event, defaultDate, onClose, onSaved }: EventModalProps) {
   const nextHour = startOfHour(addHours(new Date(), 1))
 
   const [title, setTitle] = useState(event?.title ?? "")
   const [date, setDate] = useState(
-    event ? format(new Date(event.start), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd")
+    event ? format(new Date(event.start), "yyyy-MM-dd") : (defaultDate ?? format(new Date(), "yyyy-MM-dd"))
   )
   const [startTime, setStartTime] = useState(
     event && !event.isAllDay ? format(new Date(event.start), "HH:mm") : format(nextHour, "HH:mm")
