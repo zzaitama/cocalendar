@@ -6,10 +6,10 @@ import { format } from "date-fns"
 import { formatDate } from "@/lib/utils"
 
 interface NavHeaderProps {
-  view: "today" | "week"
+  activePage: "today" | "week"
 }
 
-export function NavHeader({ view }: NavHeaderProps) {
+export function NavHeader({ activePage }: NavHeaderProps) {
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function NavHeader({ view }: NavHeaderProps) {
         <Link
           href="/"
           className={`px-6 py-4 rounded-xl text-2xl font-semibold min-h-14 flex items-center transition-colors ${
-            view === "today"
+            activePage === "today"
               ? "bg-white text-gray-950"
               : "bg-gray-800 text-gray-300 hover:bg-gray-700"
           }`}
@@ -44,7 +44,7 @@ export function NavHeader({ view }: NavHeaderProps) {
         <Link
           href="/week"
           className={`px-6 py-4 rounded-xl text-2xl font-semibold min-h-14 flex items-center transition-colors ${
-            view === "week"
+            activePage === "week"
               ? "bg-white text-gray-950"
               : "bg-gray-800 text-gray-300 hover:bg-gray-700"
           }`}
