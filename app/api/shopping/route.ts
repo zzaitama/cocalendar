@@ -8,11 +8,11 @@ import type { ShoppingListData } from "@/types"
 
 const DEFAULT_DATA: ShoppingListData = {
   stores: [
-    { id: "amazon", name: "Amazon", order: 0, items: [] },
-    { id: "target", name: "Target", order: 1, items: [] },
-    { id: "trader-joes", name: "Trader Joe's", order: 2, items: [] },
-    { id: "kukje", name: "Kukje", order: 3, items: [] },
-    { id: "costco", name: "Costco", order: 4, items: [] },
+    { id: "amazon", name: "Amazon", order: 0, color: "#fef2f2", emoji: "📦", items: [] },
+    { id: "target", name: "Target", order: 1, color: "#fef2f2", emoji: "🎯", items: [] },
+    { id: "trader-joes", name: "Trader Joe's", order: 2, color: "#f0fdf4", emoji: "🛒", items: [] },
+    { id: "kukje", name: "Kukje", order: 3, color: "#eff6ff", emoji: "🏪", items: [] },
+    { id: "costco", name: "Costco", order: 4, color: "#fefce8", emoji: "🏬", items: [] },
   ],
 }
 
