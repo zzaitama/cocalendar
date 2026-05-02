@@ -8,6 +8,8 @@ export type ShoppingStore = {
   id: string
   name: string
   order: number
+  color: string
+  emoji: string
   items: ShoppingItem[]
 }
 
