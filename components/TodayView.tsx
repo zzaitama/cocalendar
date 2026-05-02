@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
+import { TimeGrid } from "@/components/TimeGrid"
 import { todayRange } from "@/lib/utils"
 import type { CalendarEvent } from "@/types"
 
@@ -50,67 +51,45 @@ export function TodayView({ initialEvents }: TodayViewProps) {
 
   const stale = tick - lastFetchedAt > 90_000
 
-  const now = new Date()
-  const allDay = events.filter((e) => e.isAllDay)
-  const upcoming = events.filter((e) => !e.isAllDay && new Date(e.end) > now)
-  const nextUp = upcoming[0] ?? null
-  const later = upcoming.slice(1)
-  const hasAnything = allDay.length > 0 || upcoming.length > 0
+  async function handleEventDrop(event: CalendarEvent, newStart: string, newEnd: string) {
+    const res = await fetch(`/api/events/${event.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: event.title, start: newStart, end: newEnd, colorId: event.colorId }),
+    })
+    if (res.ok) await fetchNow()
+  }
+
+  const allDay = events.filter(e => e.isAllDay)
 
   return (
     <>
-      {!hasAnything ? (
+      {events.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
           <p className="text-3xl text-gray-500">Nothing today — enjoy the day!</p>
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 px-8 pb-32">
+        <div className="flex flex-col flex-1 overflow-hidden">
           {stale && (
-            <p className="text-right text-gray-600 text-sm pt-2">
+            <p className="text-right text-gray-600 text-sm px-8 pt-2 shrink-0">
               Sync paused — check connection
             </p>
           )}
-
           {allDay.length > 0 && (
-            <section>
+            <div className="px-8 py-4 shrink-0">
               <p className="text-gray-500 text-lg uppercase tracking-widest mb-3">All Day</p>
               <div className="flex flex-col gap-3">
-                {allDay.map((e) => (
-                  <EventCard
-                    key={e.id}
-                    event={e}
-                    onClick={() => setModal({ mode: "edit", event: e })}
-                  />
+                {allDay.map(e => (
+                  <EventCard key={e.id} event={e} onClick={() => setModal({ mode: "edit", event: e })} />
                 ))}
               </div>
-            </section>
+            </div>
           )}
-
-          {nextUp && (
-            <section>
-              <p className="text-gray-500 text-lg uppercase tracking-widest mb-3">Next Up</p>
-              <EventCard
-                event={nextUp}
-                featured
-                onClick={() => setModal({ mode: "edit", event: nextUp })}
-              />
-            </section>
-          )}
-
-          {later.length > 0 && (
-            <section>
-              <p className="text-gray-500 text-lg uppercase tracking-widest mb-3">Later Today</p>
-              <div className="flex flex-col gap-3">
-                {later.map((e) => (
-                  <EventCard
-                    key={e.id}
-                    event={e}
-                    onClick={() => setModal({ mode: "edit", event: e })}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+          <TimeGrid
+            events={events}
+            onEventDrop={handleEventDrop}
+            onEventClick={e => setModal({ mode: "edit", event: e })}
+          />
         </div>
       )}
 

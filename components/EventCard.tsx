@@ -18,7 +18,7 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
       onClick={onClick}
       role={onClick ? "button" : undefined}
       className={`flex overflow-hidden rounded-xl bg-gray-800 ${
-        featured ? "min-h-28" : compact ? "min-h-10" : "min-h-14"
+        featured ? "min-h-28" : compact ? "min-h-14" : "min-h-14"
       } ${onClick ? "cursor-pointer hover:bg-gray-750 active:bg-gray-700" : ""}`}
       style={{ "--person-color": color } as React.CSSProperties}
     >

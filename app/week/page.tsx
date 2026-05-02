@@ -26,7 +26,7 @@ export default async function WeekPage() {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="h-screen overflow-hidden bg-gray-950 flex flex-col">
       <NavHeader activePage="week" />
       <WeekView initialEvents={events} initialWeekStart={weekStart} />
     </div>

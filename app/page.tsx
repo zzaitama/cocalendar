@@ -23,7 +23,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="h-screen overflow-hidden bg-gray-950 flex flex-col">
       <NavHeader activePage="today" />
       <TodayView initialEvents={events} />
     </div>

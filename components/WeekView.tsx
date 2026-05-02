@@ -121,7 +121,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
                 >
                   <div className="text-center mb-3">
                     <p
-                      className={`text-xs uppercase tracking-widest ${
+                      className={`text-sm uppercase tracking-widest ${
                         today ? "text-white" : "text-gray-500"
                       }`}
                     >
