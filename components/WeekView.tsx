@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { addDays, isSameDay, startOfDay, isToday, format } from "date-fns"
 import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
@@ -119,7 +120,10 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
                     today ? "bg-gray-900 ring-1 ring-gray-700" : ""
                   }`}
                 >
-                  <div className="text-center mb-3">
+                  <Link
+                    href={`/?date=${format(day, "yyyy-MM-dd")}`}
+                    className="text-center mb-3 flex flex-col items-center min-h-14 justify-center"
+                  >
                     <p
                       className={`text-sm uppercase tracking-widest ${
                         today ? "text-white" : "text-gray-500"
@@ -134,7 +138,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
                     >
                       {format(day, "d")}
                     </p>
-                  </div>
+                  </Link>
                   <div className="flex flex-col gap-1.5">
                     {dayEvents.map((e) => (
                       <EventCard

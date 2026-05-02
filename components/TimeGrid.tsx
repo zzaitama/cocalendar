@@ -12,6 +12,7 @@ const LONG_PRESS_MS = 500
 
 interface TimeGridProps {
   events: CalendarEvent[]
+  isToday?: boolean
   onEventDrop: (ev: CalendarEvent, start: string, end: string) => Promise<void>
   onEventClick: (ev: CalendarEvent) => void
 }
@@ -31,7 +32,7 @@ function hourLabel(h: number) {
   return `${h - 12}pm`
 }
 
-export function TimeGrid({ events, onEventDrop, onEventClick }: TimeGridProps) {
+export function TimeGrid({ events, isToday = true, onEventDrop, onEventClick }: TimeGridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
   const dragInfo = useRef<{ event: CalendarEvent; startY: number } | null>(null)
@@ -121,7 +122,7 @@ export function TimeGrid({ events, onEventDrop, onEventClick }: TimeGridProps) {
           </div>
         ))}
 
-        {showNow && (
+        {isToday && showNow && (
           <div
             className="absolute left-14 right-0 flex items-center pointer-events-none z-20"
             style={{ top: nowTop }}

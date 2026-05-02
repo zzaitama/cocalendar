@@ -13,11 +13,11 @@ export function formatEventTime(start: string, end: string, isAllDay: boolean): 
   return `${formatTime(start)} – ${formatTime(end)}`
 }
 
-export function todayRange(): { start: string; end: string } {
-  const now = new Date()
+export function todayRange(date?: Date): { start: string; end: string } {
+  const d = date ?? new Date()
   return {
-    start: startOfDay(now).toISOString(),
-    end: endOfDay(now).toISOString(),
+    start: startOfDay(d).toISOString(),
+    end: endOfDay(d).toISOString(),
   }
 }
 

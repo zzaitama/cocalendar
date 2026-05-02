@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { format } from "date-fns"
 import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
@@ -14,17 +15,21 @@ type ModalState =
 
 interface TodayViewProps {
   initialEvents: CalendarEvent[]
+  targetDate?: string
 }
 
-export function TodayView({ initialEvents }: TodayViewProps) {
+export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
   const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
 
+  const isViewingToday = !targetDate
+
   const fetchNow = useCallback(async () => {
     try {
-      const { start, end } = todayRange()
+      const date = targetDate ? new Date(targetDate + "T12:00:00") : undefined
+      const { start, end } = todayRange(date)
       const res = await fetch(`/api/events?start=${start}&end=${end}`)
       if (res.status === 401) {
         window.location.href = "/api/auth/signin"
@@ -37,7 +42,7 @@ export function TodayView({ initialEvents }: TodayViewProps) {
     } catch {
       // lastFetchedAt stays stale; indicator appears after 90s
     }
-  }, [])
+  }, [targetDate])
 
   useEffect(() => {
     const interval = setInterval(fetchNow, 30_000)
@@ -64,9 +69,14 @@ export function TodayView({ initialEvents }: TodayViewProps) {
 
   return (
     <>
+      {!isViewingToday && (
+        <p className="text-gray-500 text-lg uppercase tracking-widest px-8 pt-4 shrink-0">
+          {format(new Date(targetDate! + "T12:00:00"), "EEEE, MMMM d")}
+        </p>
+      )}
       {events.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-3xl text-gray-500">Nothing today — enjoy the day!</p>
+          <p className="text-3xl text-gray-500">Nothing that day — enjoy the day!</p>
         </div>
       ) : (
         <div className="flex flex-col flex-1 overflow-hidden">
@@ -87,6 +97,7 @@ export function TodayView({ initialEvents }: TodayViewProps) {
           )}
           <TimeGrid
             events={events}
+            isToday={isViewingToday}
             onEventDrop={handleEventDrop}
             onEventClick={e => setModal({ mode: "edit", event: e })}
           />

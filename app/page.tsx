@@ -7,16 +7,20 @@ import { NavHeader } from "@/components/NavHeader"
 import { TodayView } from "@/components/TodayView"
 import type { CalendarEvent } from "@/types"
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams?: { date?: string } }) {
   const session = await getServerSession(authOptions)
 
   if (!session) {
     redirect("/api/auth/signin")
   }
 
+  const targetDate = searchParams?.date
+    ? new Date(searchParams.date + "T12:00:00")
+    : undefined
+
   let events: CalendarEvent[] = []
   try {
-    const { start, end } = todayRange()
+    const { start, end } = todayRange(targetDate)
     events = await getEvents(session.accessToken, start, end)
   } catch (error) {
     console.error("Failed to fetch events for Today View:", error)
@@ -25,7 +29,7 @@ export default async function Home() {
   return (
     <div className="h-screen overflow-hidden bg-gray-950 flex flex-col">
       <NavHeader activePage="today" />
-      <TodayView initialEvents={events} />
+      <TodayView initialEvents={events} targetDate={searchParams?.date} />
     </div>
   )
 }

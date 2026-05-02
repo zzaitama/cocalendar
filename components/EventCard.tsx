@@ -1,6 +1,6 @@
 import type { CalendarEvent } from "@/types"
 import { USERS } from "@/lib/config"
-import { formatEventTime } from "@/lib/utils"
+import { formatEventTime, formatTime } from "@/lib/utils"
 
 interface EventCardProps {
   event: CalendarEvent
@@ -31,6 +31,11 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
         >
           {event.title}
         </p>
+        {compact && !event.isAllDay && (
+          <p className="text-gray-500 text-xs leading-tight truncate">
+            {formatTime(event.start)}
+          </p>
+        )}
         {!compact && (
           <p className={`text-gray-400 ${featured ? "text-2xl" : "text-xl"}`}>
             {formatEventTime(event.start, event.end, event.isAllDay)}
