@@ -35,9 +35,18 @@ export function NavHeader({ activePage }: NavHeaderProps) {
     return () => clearInterval(interval)
   }, [activePage])
 
+  const navLinks = [
+    ["Day", "/", "day"],
+    ["Week", "/week", "week"],
+    ["Month", "/month", "month"],
+    ["List", "/list", "list"],
+    ["Chores", "/chores", "chores"],
+  ] as const
+
   return (
     <>
-      <header className="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-gray-800">
+      {/* ── Desktop / Pi header (md+): single row with clock left, nav right ── */}
+      <header className="hidden md:flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-gray-800">
         <div>
           <div className="flex items-center gap-3">
             <p className="text-gray-500 dark:text-gray-400 text-2xl" suppressHydrationWarning>
@@ -62,23 +71,20 @@ export function NavHeader({ activePage }: NavHeaderProps) {
 
         <div className="flex items-center gap-3">
           <nav className="flex gap-3">
-            {([["Day", "/", "day"], ["Week", "/week", "week"], ["Month", "/month", "month"], ["List", "/list", "list"], ["Chores", "/chores", "chores"]] as const).map(
-              ([label, href, page]) => (
-                <Link
-                  key={page}
-                  href={href}
-                  className={`px-6 py-4 rounded-xl text-2xl font-semibold min-h-14 flex items-center transition-colors ${
-                    activePage === page
-                      ? "bg-gray-950 dark:bg-white text-white dark:text-gray-950"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {label}
-                </Link>
-              )
-            )}
+            {navLinks.map(([label, href, page]) => (
+              <Link
+                key={page}
+                href={href}
+                className={`px-6 py-4 rounded-xl text-2xl font-semibold min-h-14 flex items-center transition-colors ${
+                  activePage === page
+                    ? "bg-gray-950 dark:bg-white text-white dark:text-gray-950"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
           </nav>
-
           <button
             onClick={() => setShowSettings(true)}
             className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -92,6 +98,57 @@ export function NavHeader({ activePage }: NavHeaderProps) {
         </div>
       </header>
 
+      {/* ── Mobile header: compact clock + weather top row, nav scrolls below ── */}
+      <header className="flex md:hidden flex-col border-b border-gray-200 dark:border-gray-800">
+        {/* Top row: clock + weather + settings */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <div className="flex items-center gap-2">
+            <p className="text-gray-950 dark:text-white font-bold tabular-nums" suppressHydrationWarning>
+              <span className="text-4xl">{format(now, "h:mm")}</span>
+              <span className="text-2xl text-gray-500 dark:text-gray-400 ml-1">{format(now, "a")}</span>
+            </p>
+            {activePage === "day" && weather && (
+              <button
+                onClick={() => setShowWeather(true)}
+                className="text-lg text-gray-500 dark:text-gray-400 flex items-center gap-1 px-2 py-1"
+                aria-label="Weather detail"
+              >
+                <span>{weather.icon}</span>
+                <span>{weather.current}°F</span>
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center"
+            aria-label="Settings"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Nav row: horizontally scrollable */}
+        <nav className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-none">
+          {navLinks.map(([label, href, page]) => (
+            <Link
+              key={page}
+              href={href}
+              className={`px-4 py-2.5 rounded-xl text-base font-semibold whitespace-nowrap flex items-center transition-colors ${
+                activePage === page
+                  ? "bg-gray-950 dark:bg-white text-white dark:text-gray-950"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </header>
+
+      {/* ── Weather modal (shared) ── */}
       {showWeather && weather && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-6"
