@@ -8,7 +8,7 @@ import { SettingsModal } from "@/components/SettingsModal"
 import type { WeatherData } from "@/lib/weather"
 
 interface NavHeaderProps {
-  activePage: "day" | "week" | "month" | "list"
+  activePage: "day" | "week" | "month" | "list" | "chores"
 }
 
 export function NavHeader({ activePage }: NavHeaderProps) {
@@ -62,7 +62,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
 
         <div className="flex items-center gap-3">
           <nav className="flex gap-3">
-            {([["Day", "/", "day"], ["Week", "/week", "week"], ["Month", "/month", "month"], ["List", "/list", "list"]] as const).map(
+            {([["Day", "/", "day"], ["Week", "/week", "week"], ["Month", "/month", "month"], ["List", "/list", "list"], ["Chores", "/chores", "chores"]] as const).map(
               ([label, href, page]) => (
                 <Link
                   key={page}
