@@ -5,6 +5,7 @@ import { format } from "date-fns"
 import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
+import { CountdownsSection } from "@/components/CountdownsSection"
 import { todayRange } from "@/lib/utils"
 import type { CalendarEvent } from "@/types"
 
@@ -90,69 +91,73 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
           {stale ? "Sync stale" : `Synced ${format(new Date(lastFetchedAt), "h:mm a")}`}
         </p>
 
-        {events.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center">
-            <p className="text-3xl text-gray-500 dark:text-gray-500">Nothing that day — enjoy the day!</p>
-          </div>
-        ) : (
-          <div className="px-6 pb-28 pt-4 flex flex-col gap-6">
-            {allDay.length > 0 && (
-              <section>
-                <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">All Day</p>
-                <div className="flex flex-col gap-3">
-                  {allDay.map(e => (
-                    <EventCard key={e.id} event={e} onClick={() => setModal({ mode: "edit", event: e })} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {isViewingToday && (
-              <section>
-                <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">Now</p>
-                {nowEvents.length === 0 ? (
-                  <p className="text-xl text-gray-500 dark:text-gray-600">Nothing right now</p>
-                ) : (
+        <div className="px-6 pb-28 pt-4 flex flex-col gap-6">
+          {events.length === 0 ? (
+            <div className="flex flex-1 items-center justify-center py-16">
+              <p className="text-3xl text-gray-500 dark:text-gray-500">Nothing today — enjoy the day!</p>
+            </div>
+          ) : (
+            <>
+              {allDay.length > 0 && (
+                <section>
+                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">All Day</p>
                   <div className="flex flex-col gap-3">
-                    {nowEvents.map(e => (
-                      <div key={e.id} className="ring-2 ring-gray-300 dark:ring-white/20 rounded-xl">
-                        <EventCard event={e} featured onClick={() => setModal({ mode: "edit", event: e })} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
-
-            {isViewingToday && (
-              <section>
-                <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">Next Up</p>
-                {nextUp === null ? (
-                  <p className="text-xl text-gray-500 dark:text-gray-600">No more events today</p>
-                ) : (
-                  <EventCard event={nextUp} onClick={() => setModal({ mode: "edit", event: nextUp })} />
-                )}
-              </section>
-            )}
-
-            {[
-              { label: "Morning", items: morning },
-              { label: "Afternoon", items: afternoon },
-              { label: "Evening", items: evening },
-            ].map(({ label, items }) =>
-              items.length > 0 ? (
-                <section key={label}>
-                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">{label}</p>
-                  <div className="flex flex-col gap-3">
-                    {items.map(e => (
+                    {allDay.map(e => (
                       <EventCard key={e.id} event={e} onClick={() => setModal({ mode: "edit", event: e })} />
                     ))}
                   </div>
                 </section>
-              ) : null
-            )}
-          </div>
-        )}
+              )}
+
+              {isViewingToday && (
+                <section>
+                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">Now</p>
+                  {nowEvents.length === 0 ? (
+                    <p className="text-xl text-gray-500 dark:text-gray-600">Nothing right now</p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {nowEvents.map(e => (
+                        <div key={e.id} className="ring-2 ring-gray-300 dark:ring-white/20 rounded-xl">
+                          <EventCard event={e} featured onClick={() => setModal({ mode: "edit", event: e })} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {isViewingToday && (
+                <section>
+                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">Next Up</p>
+                  {nextUp === null ? (
+                    <p className="text-xl text-gray-500 dark:text-gray-600">No more events today</p>
+                  ) : (
+                    <EventCard event={nextUp} onClick={() => setModal({ mode: "edit", event: nextUp })} />
+                  )}
+                </section>
+              )}
+
+              {[
+                { label: "Morning", items: morning },
+                { label: "Afternoon", items: afternoon },
+                { label: "Evening", items: evening },
+              ].map(({ label, items }) =>
+                items.length > 0 ? (
+                  <section key={label}>
+                    <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 mb-3">{label}</p>
+                    <div className="flex flex-col gap-3">
+                      {items.map(e => (
+                        <EventCard key={e.id} event={e} onClick={() => setModal({ mode: "edit", event: e })} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null
+              )}
+            </>
+          )}
+
+          {isViewingToday && <CountdownsSection />}
+        </div>
       </div>
 
       <AddButton onClick={() => setModal({ mode: "create" })} />
