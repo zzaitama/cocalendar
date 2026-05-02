@@ -6,6 +6,7 @@ import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
 import { TimeGrid } from "@/components/TimeGrid"
+import { PersonFilter } from "@/components/PersonFilter"
 import { todayRange } from "@/lib/utils"
 import type { CalendarEvent } from "@/types"
 
@@ -23,6 +24,7 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
   const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
+  const [selectedPeople, setSelectedPeople] = useState<string[]>([])
 
   const isViewingToday = !targetDate
 
@@ -65,7 +67,10 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
     if (res.ok) await fetchNow()
   }
 
-  const allDay = events.filter(e => e.isAllDay)
+  const filteredEvents = selectedPeople.length === 0
+    ? events
+    : events.filter(e => selectedPeople.includes(e.colorId))
+  const allDay = filteredEvents.filter(e => e.isAllDay)
 
   return (
     <>
@@ -74,7 +79,8 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
           {format(new Date(targetDate! + "T12:00:00"), "EEEE, MMMM d")}
         </p>
       )}
-      {events.length === 0 ? (
+      <PersonFilter selected={selectedPeople} onChange={setSelectedPeople} />
+      {filteredEvents.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
           <p className="text-3xl text-gray-500">Nothing that day — enjoy the day!</p>
         </div>
@@ -96,7 +102,7 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
             </div>
           )}
           <TimeGrid
-            events={events}
+            events={filteredEvents}
             isToday={isViewingToday}
             onEventDrop={handleEventDrop}
             onEventClick={e => setModal({ mode: "edit", event: e })}

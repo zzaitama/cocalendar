@@ -6,6 +6,7 @@ import { addDays, isSameDay, startOfDay, isToday, format } from "date-fns"
 import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
+import { PersonFilter } from "@/components/PersonFilter"
 import { weekRange } from "@/lib/utils"
 import type { CalendarEvent } from "@/types"
 
@@ -24,6 +25,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
   const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
+  const [selectedPeople, setSelectedPeople] = useState<string[]>([])
 
   const fetchNow = useCallback(async (anchor: Date) => {
     try {
@@ -57,7 +59,8 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
   function eventsForDay(day: Date): CalendarEvent[] {
-    return events.filter((e) => {
+    const source = selectedPeople.length === 0 ? events : events.filter(e => selectedPeople.includes(e.colorId))
+    return source.filter((e) => {
       if (e.isAllDay) {
         const eStart = startOfDay(new Date(e.start))
         const eEnd = startOfDay(new Date(e.end))
@@ -108,6 +111,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
           </button>
         </div>
 
+        <PersonFilter selected={selectedPeople} onChange={setSelectedPeople} />
         <div className="flex-1 overflow-x-auto px-4 pb-24">
           <div className="grid grid-cols-7 gap-2 min-w-[700px]">
             {days.map((day) => {
