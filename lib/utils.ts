@@ -1,4 +1,4 @@
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from "date-fns"
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, addDays } from "date-fns"
 
 export function formatDate(date: Date | string): string {
   return format(new Date(date), "EEEE, MMMM d")
