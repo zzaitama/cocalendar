@@ -131,7 +131,8 @@ ExecStart=/usr/bin/chromium-browser \
   --disable-translate \
   --no-first-run \
   --start-maximized \
-  https://your-vercel-url.vercel.app
+  --check-for-update-interval=31536000 \
+  https://cocalendar-one.vercel.app
 Restart=always
 RestartSec=5
 
@@ -177,6 +178,23 @@ sudo raspi-config
 ```
 
 Navigate to **System Options → Boot / Auto Login → Desktop Autologin**.
+
+### Troubleshooting
+
+**Blank white screen on boot**
+Chromium launched before the desktop was ready. The `ExecStartPre=/bin/sleep 5` in the service file handles this. If it still happens, increase the sleep value to 10.
+
+**Auth expired / redirect to sign-in page**
+The refresh token has been revoked (happens if you sign in to too many devices, or revoke access in your Google account). Visit the Vercel URL from a phone, sign in again, then reload the Pi.
+
+**Chromium crashed / service stopped**
+`Restart=always` in the service file restarts Chromium automatically. Check `journalctl -u kiosk -n 50` to see crash logs.
+
+**Events not updating**
+The app polls every 30–60 seconds. If the "Sync stale" indicator appears in amber, the Pi has lost internet. Check Wi-Fi with `ping 8.8.8.8`. If DNS is the issue, add `nameserver 8.8.8.8` to `/etc/resolv.conf`.
+
+**Touchscreen not registering taps**
+Run `xinput list` to confirm the touchscreen is detected. If the coordinates are inverted, add a `TransformationMatrix` option to `/usr/share/X11/xorg.conf.d/40-libinput.conf`.
 
 ---
 

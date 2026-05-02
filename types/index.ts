@@ -1,3 +1,20 @@
+export type ShoppingItem = {
+  id: string
+  text: string
+  checked: boolean
+}
+
+export type ShoppingStore = {
+  id: string
+  name: string
+  order: number
+  items: ShoppingItem[]
+}
+
+export type ShoppingListData = {
+  stores: ShoppingStore[]
+}
+
 export type CalendarEvent = {
   id: string
   title: string
