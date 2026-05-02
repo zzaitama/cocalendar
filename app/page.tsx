@@ -5,7 +5,6 @@ import { getEvents } from "@/lib/google-calendar"
 import { todayRange } from "@/lib/utils"
 import { NavHeader } from "@/components/NavHeader"
 import { TodayView } from "@/components/TodayView"
-import { AddButton } from "@/components/AddButton"
 import type { CalendarEvent } from "@/types"
 
 export default async function Home() {
@@ -27,7 +26,6 @@ export default async function Home() {
     <div className="min-h-screen bg-gray-950 flex flex-col">
       <NavHeader activePage="today" />
       <TodayView initialEvents={events} />
-      <AddButton />
     </div>
   )
 }

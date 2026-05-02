@@ -6,17 +6,20 @@ interface EventCardProps {
   event: CalendarEvent
   featured?: boolean
   compact?: boolean
+  onClick?: () => void
 }
 
-export function EventCard({ event, featured = false, compact = false }: EventCardProps) {
+export function EventCard({ event, featured = false, compact = false, onClick }: EventCardProps) {
   const user = USERS.find((u) => u.gcalColorId === event.colorId)
   const color = user?.color ?? "#64748b"
 
   return (
     <div
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
       className={`flex overflow-hidden rounded-xl bg-gray-800 ${
         featured ? "min-h-28" : compact ? "min-h-10" : "min-h-14"
-      }`}
+      } ${onClick ? "cursor-pointer hover:bg-gray-750 active:bg-gray-700" : ""}`}
       style={{ "--person-color": color } as React.CSSProperties}
     >
       <div className={`flex-shrink-0 bg-[var(--person-color)] ${compact ? "w-1.5" : "w-2"}`} />

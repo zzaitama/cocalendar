@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { getEvents } from "@/lib/google-calendar"
+import { getEvents, createEvent } from "@/lib/google-calendar"
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,5 +23,30 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("GET /api/events error:", error)
     return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.accessToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { title, start, end, colorId } = body
+
+    if (!title || !start || !end || !colorId) {
+      return NextResponse.json(
+        { error: "title, start, end, colorId required" },
+        { status: 400 }
+      )
+    }
+
+    const event = await createEvent(session.accessToken, { title, start, end, colorId })
+    return NextResponse.json(event, { status: 201 })
+  } catch (error) {
+    console.error("POST /api/events error:", error)
+    return NextResponse.json({ error: "Failed to create event" }, { status: 500 })
   }
 }

@@ -6,7 +6,6 @@ import { getEvents } from "@/lib/google-calendar"
 import { weekRange } from "@/lib/utils"
 import { NavHeader } from "@/components/NavHeader"
 import { WeekView } from "@/components/WeekView"
-import { AddButton } from "@/components/AddButton"
 import type { CalendarEvent } from "@/types"
 
 export default async function WeekPage() {
@@ -30,7 +29,6 @@ export default async function WeekPage() {
     <div className="min-h-screen bg-gray-950 flex flex-col">
       <NavHeader activePage="week" />
       <WeekView initialEvents={events} initialWeekStart={weekStart} />
-      <AddButton />
     </div>
   )
 }
