@@ -17,19 +17,24 @@ interface TodayViewProps {
 
 export function TodayView({ initialEvents }: TodayViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
-  const [stale, setStale] = useState(false)
+  const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
+  const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
 
   const fetchNow = useCallback(async () => {
     try {
       const { start, end } = todayRange()
       const res = await fetch(`/api/events?start=${start}&end=${end}`)
+      if (res.status === 401) {
+        window.location.href = "/api/auth/signin"
+        return
+      }
       if (!res.ok) throw new Error("fetch failed")
       const data: CalendarEvent[] = await res.json()
       setEvents(data)
-      setStale(false)
+      setLastFetchedAt(Date.now())
     } catch {
-      setStale(true)
+      // lastFetchedAt stays stale; indicator appears after 90s
     }
   }, [])
 
@@ -37,6 +42,13 @@ export function TodayView({ initialEvents }: TodayViewProps) {
     const interval = setInterval(fetchNow, 30_000)
     return () => clearInterval(interval)
   }, [fetchNow])
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick(Date.now()), 15_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const stale = tick - lastFetchedAt > 90_000
 
   const now = new Date()
   const allDay = events.filter((e) => e.isAllDay)
@@ -52,7 +64,7 @@ export function TodayView({ initialEvents }: TodayViewProps) {
           <p className="text-3xl text-gray-500">Nothing today — enjoy the day!</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-8 px-8 pb-32">
+        <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 px-8 pb-32">
           {stale && (
             <p className="text-right text-gray-600 text-sm pt-2">
               Sync paused — check connection

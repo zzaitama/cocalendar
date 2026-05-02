@@ -32,13 +32,13 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
           {event.title}
         </p>
         {!compact && (
-          <p className={`text-gray-400 ${featured ? "text-2xl" : "text-lg"}`}>
+          <p className={`text-gray-400 ${featured ? "text-2xl" : "text-xl"}`}>
             {formatEventTime(event.start, event.end, event.isAllDay)}
           </p>
         )}
         {!compact && user && (
           <p
-            className={`font-medium ${featured ? "text-lg" : "text-sm"}`}
+            className="font-medium text-lg"
             style={{ color }}
           >
             {user.name}

@@ -20,19 +20,24 @@ interface WeekViewProps {
 export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
   const [weekStart, setWeekStart] = useState(() => startOfDay(new Date(initialWeekStart)))
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
-  const [stale, setStale] = useState(false)
+  const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
+  const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
 
   const fetchNow = useCallback(async (anchor: Date) => {
     try {
       const { start, end } = weekRange(anchor)
       const res = await fetch(`/api/events?start=${start}&end=${end}`)
+      if (res.status === 401) {
+        window.location.href = "/api/auth/signin"
+        return
+      }
       if (!res.ok) throw new Error("fetch failed")
       const data: CalendarEvent[] = await res.json()
       setEvents(data)
-      setStale(false)
+      setLastFetchedAt(Date.now())
     } catch {
-      setStale(true)
+      // lastFetchedAt stays stale; indicator appears after 90s
     }
   }, [])
 
@@ -40,6 +45,13 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
     const interval = setInterval(() => fetchNow(weekStart), 30_000)
     return () => clearInterval(interval)
   }, [weekStart, fetchNow])
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick(Date.now()), 15_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const stale = tick - lastFetchedAt > 90_000
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
