@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { Redis } from "@upstash/redis"
-
-const kv = Redis.fromEnv()
+import { kv } from "@/lib/redis"
 
 export interface Chore {
   id: string
@@ -12,6 +10,8 @@ export interface Chore {
   completedAt: string | null
   completedWeek: number | null
 }
+
+const VALID_ASSIGNEES = new Set(["Dad", "Mom", "Colette", "Unassigned"])
 
 function getISOWeek(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -44,7 +44,7 @@ export async function GET() {
     const chores = await getChores()
     return NextResponse.json(chores)
   } catch (e) {
-    console.error("GET /api/chores error:", e)
+    console.error("GET /api/chores error:", e instanceof Error ? e.message : "Unknown")
     return NextResponse.json({ error: "Failed to fetch chores" }, { status: 500 })
   }
 }
@@ -53,20 +53,24 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    const { title, assignee } = await request.json()
-    if (!title?.trim()) return NextResponse.json({ error: "Title required" }, { status: 400 })
+    const body = await request.json()
+    const title = typeof body.title === "string" ? body.title.trim() : ""
+    if (!title || title.length > 200) {
+      return NextResponse.json({ error: "Title required (max 200 chars)" }, { status: 400 })
+    }
+    const assignee = VALID_ASSIGNEES.has(body.assignee) ? body.assignee : "Unassigned"
     const chores = await getChores()
     const newChore: Chore = {
       id: crypto.randomUUID(),
-      title: title.trim(),
-      assignee: assignee ?? "Unassigned",
+      title,
+      assignee,
       completedAt: null,
       completedWeek: null,
     }
     await kv.set("chores", [...chores, newChore])
     return NextResponse.json(newChore, { status: 201 })
   } catch (e) {
-    console.error("POST /api/chores error:", e)
+    console.error("POST /api/chores error:", e instanceof Error ? e.message : "Unknown")
     return NextResponse.json({ error: "Failed to create chore" }, { status: 500 })
   }
 }

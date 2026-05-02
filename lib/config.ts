@@ -1,6 +1,10 @@
 import type { User } from "@/types"
 
-export const HOME_COORDS = { lat: 37.6879, lon: -122.4702 }
+// Override via HOME_LAT / HOME_LON env vars to avoid committing home coordinates
+export const HOME_COORDS = {
+  lat: parseFloat(process.env.HOME_LAT ?? "37.6879"),
+  lon: parseFloat(process.env.HOME_LON ?? "-122.4702"),
+}
 
 export const USERS: User[] = [
   { id: "dad",     name: "Dad",     color: "#4CAF50", gcalColorId: "2" },

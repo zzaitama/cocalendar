@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { Redis } from "@upstash/redis"
-
-const kv = Redis.fromEnv()
+import { kv } from "@/lib/redis"
 import { NavHeader } from "@/components/NavHeader"
 import { ShoppingList } from "@/components/ShoppingList"
 import type { ShoppingListData } from "@/types"
@@ -27,7 +25,7 @@ export default async function ListPage() {
     const stored = await kv.get<ShoppingListData>("shopping-list")
     if (stored) data = stored
   } catch (error) {
-    console.error("Failed to fetch shopping list from KV:", error)
+    console.error("Failed to fetch shopping list from KV:", error instanceof Error ? error.message : "Unknown")
   }
 
   return (

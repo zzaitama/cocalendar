@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { Redis } from "@upstash/redis"
+import { kv } from "@/lib/redis"
 import type { Chore } from "../route"
 
-const kv = Redis.fromEnv()
+const VALID_ASSIGNEES = new Set(["Dad", "Mom", "Colette", "Unassigned"])
 
 function getISOWeek(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -14,12 +14,16 @@ function getISOWeek(date: Date): number {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const { id } = await params
     const chores = await kv.get<Chore[]>("chores") ?? []
-    const idx = chores.findIndex(c => c.id === params.id)
+    const idx = chores.findIndex(c => c.id === id)
     if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 })
     const body = await request.json()
     const chore = chores[idx]
@@ -30,25 +34,32 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         completedWeek: body.completed ? getISOWeek(new Date()) : null,
       }
     } else {
-      chores[idx] = { ...chore, ...body }
+      const rawTitle = typeof body.title === "string" ? body.title.trim() : chore.title
+      const title = rawTitle.slice(0, 200) || chore.title
+      const assignee = VALID_ASSIGNEES.has(body.assignee) ? body.assignee : chore.assignee
+      chores[idx] = { ...chore, title, assignee }
     }
     await kv.set("chores", chores)
     return NextResponse.json(chores[idx])
   } catch (e) {
-    console.error("PATCH /api/chores/[id] error:", e)
+    console.error("PATCH /api/chores/[id] error:", e instanceof Error ? e.message : "Unknown")
     return NextResponse.json({ error: "Failed to update chore" }, { status: 500 })
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const { id } = await params
     const chores = await kv.get<Chore[]>("chores") ?? []
-    await kv.set("chores", chores.filter(c => c.id !== params.id))
+    await kv.set("chores", chores.filter(c => c.id !== id))
     return NextResponse.json({ ok: true })
   } catch (e) {
-    console.error("DELETE /api/chores/[id] error:", e)
+    console.error("DELETE /api/chores/[id] error:", e instanceof Error ? e.message : "Unknown")
     return NextResponse.json({ error: "Failed to delete chore" }, { status: 500 })
   }
 }

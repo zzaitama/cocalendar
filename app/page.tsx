@@ -7,16 +7,19 @@ import { NavHeader } from "@/components/NavHeader"
 import { TodayView } from "@/components/TodayView"
 import type { CalendarEvent } from "@/types"
 
-export default async function Home({ searchParams }: { searchParams?: { date?: string } }) {
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+export default async function Home({ searchParams }: { searchParams?: Promise<{ date?: string }> }) {
   const session = await getServerSession(authOptions)
 
   if (!session) {
     redirect("/api/auth/signin")
   }
 
-  const targetDate = searchParams?.date
-    ? new Date(searchParams.date + "T12:00:00")
-    : undefined
+  const params = await searchParams
+  const rawDate = params?.date
+  const safeDate = rawDate && ISO_DATE_RE.test(rawDate) ? rawDate : undefined
+  const targetDate = safeDate ? new Date(safeDate + "T12:00:00") : undefined
 
   let events: CalendarEvent[] = []
   try {
@@ -29,7 +32,7 @@ export default async function Home({ searchParams }: { searchParams?: { date?: s
   return (
     <div className="h-screen overflow-hidden bg-white dark:bg-gray-950 flex flex-col">
       <NavHeader activePage="day" />
-      <TodayView initialEvents={events} targetDate={searchParams?.date} />
+      <TodayView initialEvents={events} targetDate={safeDate} />
     </div>
   )
 }

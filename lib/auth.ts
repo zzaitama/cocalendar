@@ -2,6 +2,7 @@ import type { AuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 
 export const authOptions: AuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -55,7 +56,8 @@ export const authOptions: AuthOptions = {
           expiresAt: Math.floor(Date.now() / 1000 + tokens.expires_in),
         }
       } catch (error) {
-        console.error("Token refresh failed:", error)
+        const msg = error instanceof Error ? error.message : "OAuth refresh error"
+        console.error("Token refresh failed:", msg.slice(0, 200))
         return { ...token, error: "RefreshAccessTokenError" }
       }
     },
