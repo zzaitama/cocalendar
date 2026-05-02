@@ -102,7 +102,7 @@ interface StoreCardProps {
   onDeleteItem: (itemId: string) => void
   onAddItem: (text: string) => void
   onSettingsOpen: () => void
-  onDragStart: (e: React.DragEvent) => void
+  onDragStart: () => void
   onDragOver: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   isDraggingOver: boolean
@@ -129,7 +129,7 @@ function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onSettingsOpe
   return (
     <div
       draggable
-      onDragStart={onDragStart}
+      onDragStart={() => onDragStart()}
       onDragOver={onDragOver}
       onDrop={onDrop}
       className={`rounded-2xl p-4 flex flex-col gap-3 transition-all ${isDraggingOver ? "scale-105 shadow-2xl" : "shadow-sm"}`}
@@ -350,7 +350,7 @@ export function ShoppingList({ initialData }: ShoppingListProps) {
               onDeleteItem={itemId => deleteItem(store.id, itemId)}
               onAddItem={text => addItem(store.id, text)}
               onSettingsOpen={() => setSettingsFor(store.id)}
-              onDragStart={_e => handleDragStart(store.id)}
+              onDragStart={() => handleDragStart(store.id)}
               onDragOver={e => handleDragOver(e, store.id)}
               onDrop={e => handleDrop(e, store.id)}
               isDraggingOver={dragOverId === store.id}
