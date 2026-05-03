@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { format, differenceInMinutes } from "date-fns"
+import { format, differenceInMinutes, startOfDay, endOfDay } from "date-fns"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
 import { CountdownsSection } from "@/components/CountdownsSection"
-import { todayRange } from "@/lib/utils"
 import { USERS } from "@/lib/config"
 import type { CalendarEvent } from "@/types"
 
@@ -25,7 +24,8 @@ const PX_PER_MIN = PX_PER_HOUR / 60
 
 function topPx(ev: CalendarEvent): number {
   const d = new Date(ev.start)
-  return ((d.getHours() - START_HOUR) * 60 + d.getMinutes()) * PX_PER_MIN
+  const mins = (d.getHours() - START_HOUR) * 60 + d.getMinutes()
+  return Math.max(0, mins * PX_PER_MIN)
 }
 
 function heightPx(ev: CalendarEvent): number {
@@ -44,6 +44,15 @@ function hourLabel(h: number): string {
   return h < 12 ? `${h} AM` : `${h - 12} PM`
 }
 
+// Build the fetch range using the BROWSER's local time, not server UTC
+function localTodayRange(targetDate?: string): { start: string; end: string } {
+  const base = targetDate ? new Date(targetDate + "T12:00:00") : new Date()
+  return {
+    start: startOfDay(base).toISOString(),
+    end: endOfDay(base).toISOString(),
+  }
+}
+
 export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
@@ -55,8 +64,8 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
 
   const fetchNow = useCallback(async () => {
     try {
-      const date = targetDate ? new Date(targetDate + "T12:00:00") : undefined
-      const { start, end } = todayRange(date)
+      // Use browser-local time so the range is correct for the user's timezone
+      const { start, end } = localTodayRange(targetDate)
       const res = await fetch(`/api/events?start=${start}&end=${end}`)
       if (res.status === 401) {
         window.location.href = "/api/auth/signin"
@@ -70,6 +79,11 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
       // stale indicator kicks in after 2 min
     }
   }, [targetDate])
+
+  // Fetch immediately on mount using correct local timezone
+  useEffect(() => {
+    fetchNow()
+  }, [fetchNow])
 
   useEffect(() => {
     const interval = setInterval(fetchNow, 30_000)
