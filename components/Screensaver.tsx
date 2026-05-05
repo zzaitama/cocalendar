@@ -13,9 +13,8 @@ const DEFAULT_CONFIG: ScreensaverConfig = {
   quietHoursStart: "22:00",
   quietHoursEnd: "07:00",
 }
-const CARD_COUNT = 5
+const CARD_COUNT = 9
 const CYCLE_MS = 3500
-const BASE_SPEED = 1.2
 
 function loadConfig(): ScreensaverConfig {
   if (typeof window === "undefined") return DEFAULT_CONFIG
@@ -44,16 +43,22 @@ function pickPhoto(photos: string[], prevIdx: number): { photo: string; idx: num
   return { photo: photos[idx], idx }
 }
 
-function makeCard(photos: string[], prevIdx: number, W: number, H: number) {
+function makeCard(photos: string[], prevIdx: number, W: number, H: number, cellIdx: number) {
   const portrait = Math.random() > 0.5
   const width = 180 + Math.floor(Math.random() * 141)
   const height = portrait ? Math.round(width * (4 / 3)) : Math.round(width * (3 / 4))
   const { photo, idx } = pickPhoto(photos, prevIdx)
+  const col = cellIdx % 3
+  const row = Math.floor(cellIdx / 3)
+  const cellCenterX = (col + 0.5) * (W / 3)
+  const cellCenterY = (row + 0.5) * (H / 3)
+  const rawX = cellCenterX - width / 2 + (Math.random() * 100 - 50)
+  const rawY = cellCenterY - height / 2 + (Math.random() * 100 - 50)
   const angle = Math.random() * 2 * Math.PI
-  const speed = BASE_SPEED * (0.8 + Math.random() * 0.4)
+  const speed = 1.2 + Math.random() * 1.3
   return {
-    x: Math.random() * Math.max(1, W - width),
-    y: Math.random() * Math.max(1, H - height),
+    x: Math.min(Math.max(0, rawX), Math.max(0, W - width)),
+    y: Math.min(Math.max(0, rawY), Math.max(0, H - height)),
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
     width,
@@ -93,7 +98,7 @@ export function Screensaver({ forceShow = false }: ScreensaverProps) {
   const show = useCallback(() => {
     const W = window.innerWidth, H = window.innerHeight
     const initial = Array.from({ length: CARD_COUNT }, (_, i) =>
-      makeCard(photos, i === 0 ? -1 : i - 1, W, H)
+      makeCard(photos, i === 0 ? -1 : i - 1, W, H, i)
     )
     setCards(initial)
     setVisible(true)
@@ -145,7 +150,7 @@ export function Screensaver({ forceShow = false }: ScreensaverProps) {
       onTouchStart={hide}
     >
       {cards.map((card, i) => (
-        <BouncingCard key={i} card={card} speedMultiplier={speedMultiplier} />
+        <BouncingCard key={i} card={card} cardIndex={i} speedMultiplier={speedMultiplier} />
       ))}
       <ClockOverlay clockStyle={config.clockStyle} />
     </div>
