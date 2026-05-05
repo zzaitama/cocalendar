@@ -21,8 +21,8 @@ interface MonthViewProps {
   initialMonthStart: string
 }
 
-export function MonthView({ initialEvents, initialMonthStart }: MonthViewProps) {
-  const [monthStart, setMonthStart] = useState(() => startOfMonth(new Date(initialMonthStart)))
+export function MonthView({ initialEvents }: MonthViewProps) {
+  const [monthStart, setMonthStart] = useState(() => startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
