@@ -40,10 +40,11 @@ const GCAL_COLOR_HEX: Record<string, string> = {
 }
 
 export const LANE_CONFIG = [
-  { name: "Person 1", googleColor: "Tomato" },
-  { name: "Person 2", googleColor: "Blueberry" },
-  { name: "Person 3", googleColor: "Sage" },
-  { name: "Person 4", googleColor: "Grape" },
+  { name: "Daddy",   googleColor: "Sage" },      // gcalColorId 2 = green
+  { name: "Mommy",   googleColor: "Peacock" },   // gcalColorId 7 = blue
+  { name: "Colette", googleColor: "Flamingo" },  // gcalColorId 4 = pink
+  { name: "Monti",   googleColor: "Banana" },    // gcalColorId 5 = yellow
+  { name: "Family",  googleColor: "Grape" },     // gcalColorId 3 = purple
 ]
 
 // colorIds that belong to a named lane

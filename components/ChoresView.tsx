@@ -13,7 +13,7 @@ export interface Chore {
 type Assignee = "Daddy" | "Mommy" | "Colette" | "Monti" | "Unassigned"
 
 const ASSIGNEES: { name: Assignee; color: string }[] = [
-  { name: "Daddy",   color: "#D50000" },
+  { name: "Daddy",   color: "#33B679" },
   { name: "Mommy",   color: "#039BE5" },
   { name: "Colette", color: "#E67C73" },
   { name: "Monti",   color: "#F6BF26" },
