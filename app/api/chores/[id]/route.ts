@@ -5,7 +5,7 @@ import { kv } from "@/lib/redis"
 import { checkRateLimit } from "@/lib/rate-limit"
 import type { Chore } from "../route"
 
-const VALID_ASSIGNEES = new Set(["Dad", "Mom", "Colette", "Unassigned"])
+const VALID_ASSIGNEES = new Set(["Daddy", "Mommy", "Colette", "Monti", "Unassigned"])
 
 function getISOWeek(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))

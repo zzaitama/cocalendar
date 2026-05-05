@@ -7,12 +7,12 @@ import { checkRateLimit } from "@/lib/rate-limit"
 export interface Chore {
   id: string
   title: string
-  assignee: "Dad" | "Mom" | "Colette" | "Unassigned"
+  assignee: "Daddy" | "Mommy" | "Colette" | "Monti" | "Unassigned"
   completedAt: string | null
   completedWeek: number | null
 }
 
-const VALID_ASSIGNEES = new Set(["Dad", "Mom", "Colette", "Unassigned"])
+const VALID_ASSIGNEES = new Set(["Daddy", "Mommy", "Colette", "Monti", "Unassigned"])
 
 function getISOWeek(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))

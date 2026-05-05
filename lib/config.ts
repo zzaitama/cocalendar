@@ -8,8 +8,9 @@ export function getHomeCoords(): { lat: number; lon: number } {
 }
 
 export const USERS: User[] = [
-  { id: "dad",     name: "Dad",     color: "#4CAF50", gcalColorId: "2" },
-  { id: "mom",     name: "Mom",     color: "#2196F3", gcalColorId: "1" },
-  { id: "colette", name: "Colette", color: "#FF69B4", gcalColorId: "5" },
-  { id: "family",  name: "Family",  color: "#9C27B0", gcalColorId: "3" },
+  { id: "dad",     name: "Daddy",   color: "#D50000", gcalColorId: "11" }, // Tomato = red
+  { id: "mom",     name: "Mommy",   color: "#039BE5", gcalColorId: "7"  }, // Peacock = blue
+  { id: "colette", name: "Colette", color: "#E67C73", gcalColorId: "4"  }, // Flamingo = pink
+  { id: "monti",   name: "Monti",   color: "#F6BF26", gcalColorId: "5"  }, // Banana = yellow
+  { id: "family",  name: "Family",  color: "#8E24AA", gcalColorId: "3"  }, // Grape = purple
 ]

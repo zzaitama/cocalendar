@@ -5,17 +5,18 @@ import { useState, useEffect, useCallback } from "react"
 export interface Chore {
   id: string
   title: string
-  assignee: "Dad" | "Mom" | "Colette" | "Unassigned"
+  assignee: "Daddy" | "Mommy" | "Colette" | "Monti" | "Unassigned"
   completedAt: string | null
   completedWeek: number | null
 }
 
-type Assignee = "Dad" | "Mom" | "Colette" | "Unassigned"
+type Assignee = "Daddy" | "Mommy" | "Colette" | "Monti" | "Unassigned"
 
 const ASSIGNEES: { name: Assignee; color: string }[] = [
-  { name: "Dad",       color: "#4CAF50" },
-  { name: "Mom",       color: "#2196F3" },
-  { name: "Colette",   color: "#FF69B4" },
+  { name: "Daddy",   color: "#D50000" },
+  { name: "Mommy",   color: "#039BE5" },
+  { name: "Colette", color: "#E67C73" },
+  { name: "Monti",   color: "#F6BF26" },
   { name: "Unassigned", color: "#9E9E9E" },
 ]
 
