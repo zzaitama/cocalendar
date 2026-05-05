@@ -17,7 +17,7 @@ export default function ScreensaverPage() {
           ← Back
         </Link>
       </div>
-      <ScreensaverPreview forceShow />
+      <ScreensaverPreview forceActive />
     </>
   )
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { BouncingCard } from "./BouncingCard"
 import { ClockOverlay } from "./ClockOverlay"
+import { useSleep } from "./SleepProvider"
 import type { ScreensaverConfig } from "@/types"
 
 const STORAGE_KEY = "cocalendar-screensaver"
@@ -69,10 +70,14 @@ function makeCard(photos: string[], prevIdx: number, W: number, H: number, cellI
 }
 
 interface ScreensaverProps {
-  forceShow?: boolean
+  forceActive?: boolean
+  onWake?: () => void
 }
 
-export function Screensaver({ forceShow = false }: ScreensaverProps) {
+export function Screensaver({ forceActive = false, onWake }: ScreensaverProps) {
+  const { sleeping, wake } = useSleep()
+  const isForced = forceActive || sleeping
+
   const [visible, setVisible] = useState(false)
   const [photos, setPhotos] = useState<string[]>([])
   const [cards, setCards] = useState<ReturnType<typeof makeCard>[]>([])
@@ -114,8 +119,16 @@ export function Screensaver({ forceShow = false }: ScreensaverProps) {
     idleTimer.current = setTimeout(show, (config.idleTimeout || 5) * 60 * 1000)
   }, [config.idleTimeout, show])
 
+  const handleDismiss = useCallback(() => {
+    hide()
+    if (isForced) {
+      wake()
+      onWake?.()
+    }
+  }, [hide, isForced, wake, onWake])
+
   useEffect(() => {
-    if (forceShow) { show(); return }
+    if (isForced) { show(); return }
     const events = ["mousemove", "mousedown", "touchstart", "keydown"]
     const onActivity = () => { if (visible) hide(); resetIdle() }
     events.forEach(e => document.addEventListener(e, onActivity, { passive: true }))
@@ -124,7 +137,7 @@ export function Screensaver({ forceShow = false }: ScreensaverProps) {
       events.forEach(e => document.removeEventListener(e, onActivity))
       if (idleTimer.current) clearTimeout(idleTimer.current)
     }
-  }, [forceShow, visible, show, hide, resetIdle])
+  }, [isForced, visible, show, hide, resetIdle])
 
   useEffect(() => {
     if (!visible || photos.length === 0) return
@@ -146,8 +159,8 @@ export function Screensaver({ forceShow = false }: ScreensaverProps) {
     <div
       className="fixed inset-0 bg-black overflow-hidden"
       style={{ zIndex: 9999 }}
-      onClick={hide}
-      onTouchStart={hide}
+      onClick={handleDismiss}
+      onTouchStart={handleDismiss}
     >
       {cards.map((card, i) => (
         <BouncingCard key={i} card={card} cardIndex={i} speedMultiplier={speedMultiplier} />

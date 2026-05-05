@@ -1,31 +1,4 @@
-export type ScreensaverConfig = {
-  idleTimeout: number
-  clockStyle: 'digital' | 'analog'
-  quietHoursEnabled: boolean
-  quietHoursStart: string
-  quietHoursEnd: string
-}
-
-export type ShoppingItem = {
-  id: string
-  text: string
-  checked: boolean
-}
-
-export type ShoppingStore = {
-  id: string
-  name: string
-  order: number
-  color: string
-  emoji: string
-  items: ShoppingItem[]
-}
-
-export type ShoppingListData = {
-  stores: ShoppingStore[]
-}
-
-export type CalendarEvent = {
+export interface CalendarEvent {
   id: string
   title: string
   start: string
@@ -34,23 +7,36 @@ export type CalendarEvent = {
   isAllDay: boolean
 }
 
-export type User = {
+export interface User {
   id: string
   name: string
   color: string
   gcalColorId: string
 }
 
-declare module "next-auth" {
-  interface Session {
-    accessToken: string
-  }
+export interface ScreensaverConfig {
+  idleTimeout: number
+  clockStyle: "digital" | "analog"
+  quietHoursEnabled: boolean
+  quietHoursStart: string
+  quietHoursEnd: string
 }
 
-declare module "next-auth/jwt" {
-  interface JWT {
-    accessToken?: string
-    refreshToken?: string
-    expiresAt?: number
-  }
+export interface ShoppingItem {
+  id: string
+  text: string
+  checked: boolean
+}
+
+export interface ShoppingStore {
+  id: string
+  name: string
+  order: number
+  color: string
+  emoji: string
+  items: ShoppingItem[]
+}
+
+export interface ShoppingListData {
+  stores: ShoppingStore[]
 }

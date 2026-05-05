@@ -3,6 +3,7 @@ import localFont from "next/font/local"
 import dynamic from "next/dynamic"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
+import { SleepProvider } from "@/components/SleepProvider"
 
 const Screensaver = dynamic(
   () => import("@/components/Screensaver").then(m => m.Screensaver),
@@ -34,8 +35,10 @@ export default function RootLayout({
             __html: `(function(){try{var o=localStorage.getItem('theme-override');var dark;if(o==='dark')dark=true;else if(o==='light')dark=false;else{var h=new Date().getHours();dark=h<7||h>=19;}if(dark)document.documentElement.classList.add('dark');}catch(e){}})()`,
           }}
         />
-        <ThemeProvider>{children}</ThemeProvider>
-        <Screensaver />
+        <SleepProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+          <Screensaver />
+        </SleepProvider>
       </body>
     </html>
   )

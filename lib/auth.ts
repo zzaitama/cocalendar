@@ -30,7 +30,7 @@ export const authOptions: AuthOptions = {
         }
       }
 
-      if (Date.now() < (token.expiresAt ?? 0) * 1000) {
+      if (Date.now() < ((token.expiresAt as number | undefined) ?? 0) * 1000) {
         return token
       }
 

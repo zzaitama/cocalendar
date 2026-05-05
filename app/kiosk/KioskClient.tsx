@@ -1,6 +1,5 @@
 'use client'
 
-import './kiosk.css'
 import { useKioskData, type Chore } from './useKioskData'
 import { USERS } from '@/lib/config'
 import type { CalendarEvent } from '@/types'
@@ -215,7 +214,7 @@ export default function KioskClient() {
   const doneCount = chores.filter(c => c.completedAt !== null).length
 
   return (
-    <div className="kiosk-root flex flex-col">
+    <div className="h-screen bg-[#0a0a0a] text-white overflow-hidden flex flex-col">
       <TopBar now={now} />
       <HeroPanel event={nextEvent} now={now} />
       <div className="grid grid-cols-[1fr_1.2fr] flex-1 overflow-hidden">

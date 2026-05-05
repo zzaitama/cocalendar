@@ -1,5 +1,5 @@
 export type TimeBucket = "morning" | "afternoon" | "evening" | "anytime"
-export type RecurrenceType = "manual" | "daily" | "selectedDays"
+export type RecurrenceType = "daily" | "selectedDays" | "manual"
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun"
 
 export interface ChoreTemplate {
@@ -28,7 +28,7 @@ export interface ChoreCompletion {
   updatedAt: string
 }
 
-export type ChoreWithCompletion = ChoreTemplate & {
+export interface ChoreWithCompletion extends ChoreTemplate {
   completion: ChoreCompletion | null
 }
 

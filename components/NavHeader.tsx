@@ -5,6 +5,8 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { formatDate } from "@/lib/utils"
 import { SettingsModal } from "@/components/SettingsModal"
+import { SleepButton } from "@/components/SleepButton"
+import { useSleep } from "@/components/SleepProvider"
 import type { WeatherData } from "@/lib/weather"
 
 interface NavHeaderProps {
@@ -16,6 +18,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [showWeather, setShowWeather] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const { sleep } = useSleep()
 
   useEffect(() => {
     setNow(new Date())
@@ -85,6 +88,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
               </Link>
             ))}
           </nav>
+          <SleepButton onClick={sleep} />
           <button
             onClick={() => setShowSettings(true)}
             className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -118,6 +122,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
               </button>
             )}
           </div>
+          <SleepButton onClick={sleep} size="sm" />
           <button
             onClick={() => setShowSettings(true)}
             className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center"
