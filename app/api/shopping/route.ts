@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 import type { ShoppingListData } from "@/types"
 
 const DEFAULT_DATA: ShoppingListData = {
@@ -56,6 +57,8 @@ export async function POST(request: NextRequest) {
     if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const allowed = await checkRateLimit(`shopping:${session.user?.email ?? "shared"}`)
+    if (!allowed) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
     const body: unknown = await request.json()
     if (!isValidShoppingListData(body)) {
       return NextResponse.json({ error: "Invalid shopping list data" }, { status: 400 })

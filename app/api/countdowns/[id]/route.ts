@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { Redis } from "@upstash/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 import type { Countdown } from "../route"
 
 const kv = Redis.fromEnv()
@@ -10,6 +11,8 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const _rl = await checkRateLimit(`countdowns:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
     const countdowns = await kv.get<Countdown[]>("countdowns") ?? []
     await kv.set("countdowns", countdowns.filter(c => c.id !== params.id))
     return NextResponse.json({ ok: true })

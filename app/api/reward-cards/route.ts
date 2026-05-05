@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 import type { RewardCard } from "@/types/chores"
 
 const SEED_REWARDS: RewardCard[] = [
@@ -63,6 +64,8 @@ export async function POST(request: Request) {
     if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const _rl = await checkRateLimit(`rewards:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
     const body = await request.json()
     const { title, description, pointsCost, emoji, isActive } = body

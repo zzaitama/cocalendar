@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 import type { ChoreTemplate, ChoreCompletion } from "@/types/chores"
 import { todayString } from "@/lib/chores-helpers"
 
@@ -14,6 +15,8 @@ export async function PATCH(
     if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const _rl = await checkRateLimit(`chores:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
     const { personId, date } = await request.json()
     const choreId = params.id

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export interface Countdown {
   id: string
@@ -28,6 +29,8 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const _rl = await checkRateLimit(`countdowns:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
     const body = await request.json()
     const title = typeof body.title === "string" ? body.title.trim() : ""
     if (!title || title.length > 200) {

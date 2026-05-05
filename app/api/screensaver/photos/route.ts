@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 import sharp from 'sharp'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 const PHOTOS_DIR = path.join(process.cwd(), 'public', 'screensaver-photos')
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'])
@@ -14,6 +16,8 @@ function ensureDir() {
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.accessToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     ensureDir()
     const files = fs.readdirSync(PHOTOS_DIR).filter(f =>
       IMAGE_EXTS.has(path.extname(f).toLowerCase())
@@ -26,6 +30,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.accessToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     ensureDir()
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]

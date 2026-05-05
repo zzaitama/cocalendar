@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 import type { Chore } from "../route"
 
 const VALID_ASSIGNEES = new Set(["Dad", "Mom", "Colette", "Unassigned"])
@@ -21,6 +22,8 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const _rl = await checkRateLimit(`chores:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
     const { id } = await params
     const chores = await kv.get<Chore[]>("chores") ?? []
     const idx = chores.findIndex(c => c.id === id)
@@ -54,6 +57,8 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const _rl = await checkRateLimit(`chores:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
     const { id } = await params
     const chores = await kv.get<Chore[]>("chores") ?? []
     await kv.set("chores", chores.filter(c => c.id !== id))

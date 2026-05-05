@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 import type { RewardCard } from "@/types/chores"
 
 export async function PATCH(
@@ -13,6 +14,8 @@ export async function PATCH(
     if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const _rl = await checkRateLimit(`rewards:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
     const rewards = (await kv.get<RewardCard[]>("reward_cards")) ?? []
     const idx = rewards.findIndex((r) => r.id === params.id)
@@ -50,6 +53,8 @@ export async function DELETE(
     if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const _rl = await checkRateLimit(`rewards:${session.user?.email ?? "shared"}`)
+    if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
     const rewards = (await kv.get<RewardCard[]>("reward_cards")) ?? []
     const filtered = rewards.filter((r) => r.id !== params.id)
