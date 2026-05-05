@@ -5,6 +5,7 @@ import { format, differenceInMinutes, startOfDay, endOfDay } from "date-fns"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
 import { CountdownsSection } from "@/components/CountdownsSection"
+import { SwimlaneView } from "@/components/SwimlaneView"
 import { USERS } from "@/lib/config"
 import type { CalendarEvent } from "@/types"
 
@@ -58,6 +59,7 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
   const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
+  const [viewMode, setViewMode] = useState<"day" | "swimlane">("day")
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const isViewingToday = !targetDate
@@ -118,14 +120,29 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
     <>
       <div className="flex flex-col flex-1 overflow-hidden">
 
-        {/* ── Header row: date label + sync indicator ── */}
-        <div className="flex items-center justify-between px-4 py-2 shrink-0">
-          <p className="text-gray-950 dark:text-white font-semibold text-base">
+        {/* ── Header row: date label + view toggle + sync indicator ── */}
+        <div className="flex items-center gap-2 px-4 py-2 shrink-0">
+          <p className="text-gray-950 dark:text-white font-semibold text-base flex-1">
             {isViewingToday
               ? format(now, "EEEE, MMMM d")
               : format(new Date(targetDate! + "T12:00:00"), "EEEE, MMMM d")}
           </p>
-          <p className={`text-xs ${stale ? "text-amber-500" : "text-gray-400 dark:text-gray-600"}`}>
+          <div className="hidden sm:flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 shrink-0">
+            {(["day", "swimlane"] as const).map(mode => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors capitalize ${
+                  viewMode === mode
+                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <p className={`text-xs shrink-0 ${stale ? "text-amber-500" : "text-gray-400 dark:text-gray-600"}`}>
             {stale ? "Sync stale" : `Synced ${format(new Date(lastFetchedAt), "h:mm a")}`}
           </p>
         </div>
@@ -151,8 +168,19 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
           </div>
         )}
 
-        {/* ── Time grid ── */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto pb-32">
+        {/* ── Swimlane (desktop only when swimlane mode) ── */}
+        {viewMode === "swimlane" && (
+          <div className="hidden sm:flex flex-col flex-1 overflow-hidden">
+            <SwimlaneView
+              events={events}
+              isToday={isViewingToday}
+              onEventClick={e => setModal({ mode: "edit", event: e })}
+            />
+          </div>
+        )}
+
+        {/* ── Time grid (always on mobile; on desktop only in day mode) ── */}
+        <div ref={scrollRef} className={`flex-1 overflow-y-auto pb-32${viewMode === "swimlane" ? " sm:hidden" : ""}`}>
           <div className="relative" style={{ height: gridH }}>
 
             {/* Hour lines + labels */}

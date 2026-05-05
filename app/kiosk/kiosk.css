@@ -1,0 +1,23 @@
+.kiosk-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #0d0d0d;
+  color: #f8f8f8;
+}
+
+.kiosk-root,
+.kiosk-root * {
+  cursor: none !important;
+}
+
+.kiosk-root ::-webkit-scrollbar {
+  display: none;
+}
+
+.kiosk-root * {
+  scrollbar-width: none;
+}
