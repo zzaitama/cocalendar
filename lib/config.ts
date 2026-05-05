@@ -1,12 +1,10 @@
 import type { User } from "@/types"
 
-if (!process.env.HOME_LAT || !process.env.HOME_LON) {
-  throw new Error("HOME_LAT and HOME_LON environment variables are required")
-}
-
-export const HOME_COORDS = {
-  lat: parseFloat(process.env.HOME_LAT),
-  lon: parseFloat(process.env.HOME_LON),
+export function getHomeCoords(): { lat: number; lon: number } {
+  const lat = process.env.HOME_LAT
+  const lon = process.env.HOME_LON
+  if (!lat || !lon) throw new Error("HOME_LAT and HOME_LON environment variables are required")
+  return { lat: parseFloat(lat), lon: parseFloat(lon) }
 }
 
 export const USERS: User[] = [

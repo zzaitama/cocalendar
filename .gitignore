@@ -36,3 +36,11 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# screensaver photos — managed at runtime, not committed
+/public/screensaver-photos/*.jpg
+/public/screensaver-photos/*.jpeg
+/public/screensaver-photos/*.png
+/public/screensaver-photos/*.webp
+/public/screensaver-photos/*.heic
+/public/screensaver-photos/*.heif

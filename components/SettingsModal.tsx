@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { USERS } from "@/lib/config"
 import { useTheme, type ThemeOverride } from "@/context/ThemeContext"
+import { ScreensaverSettings } from "./ScreensaverSettings"
 
 interface SettingsModalProps {
   onClose: () => void
@@ -93,6 +94,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             <p>Month: every 60 seconds</p>
           </div>
         </section>
+
+        <ScreensaverSettings />
 
         <section>
           <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">About</p>

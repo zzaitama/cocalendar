@@ -1,4 +1,4 @@
-import { HOME_COORDS } from "@/lib/config"
+import { getHomeCoords } from "@/lib/config"
 
 export type WeatherData = {
   current: number
@@ -34,7 +34,8 @@ function sliceStats(temps: number[], codes: number[], start: number, end: number
 
 export async function fetchWeather(): Promise<WeatherData | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${HOME_COORDS.lat}&longitude=${HOME_COORDS.lon}&hourly=temperature_2m,weathercode&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles&forecast_days=1`
+    const { lat, lon } = getHomeCoords()
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles&forecast_days=1`
     const res = await fetch(url, { next: { revalidate: 0 } })
     if (!res.ok) return null
     const data = (await res.json()) as OpenMeteoResponse

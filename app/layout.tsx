@@ -1,7 +1,13 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
+import dynamic from "next/dynamic"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
+
+const Screensaver = dynamic(
+  () => import("@/components/Screensaver").then(m => m.Screensaver),
+  { ssr: false }
+)
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,6 +35,7 @@ export default function RootLayout({
           }}
         />
         <ThemeProvider>{children}</ThemeProvider>
+        <Screensaver />
       </body>
     </html>
   )

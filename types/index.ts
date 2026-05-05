@@ -1,3 +1,11 @@
+export type ScreensaverConfig = {
+  idleTimeout: number
+  clockStyle: 'digital' | 'analog'
+  quietHoursEnabled: boolean
+  quietHoursStart: string
+  quietHoursEnd: string
+}
+
 export type ShoppingItem = {
   id: string
   text: string
