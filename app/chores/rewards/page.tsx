@@ -2,15 +2,15 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { NavHeader } from "@/components/NavHeader"
-import { ChoresView } from "@/components/chores/ChoresView"
+import { RewardManagementPage } from "@/components/chores/RewardManagementPage"
 
-export default async function ChoresPage() {
+export default async function ChoresRewardsPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect("/api/auth/signin")
   return (
-    <div className="h-screen overflow-hidden bg-white dark:bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
       <NavHeader activePage="chores" />
-      <ChoresView />
+      <RewardManagementPage />
     </div>
   )
 }
