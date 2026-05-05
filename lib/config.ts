@@ -1,9 +1,12 @@
 import type { User } from "@/types"
 
-// Override via HOME_LAT / HOME_LON env vars to avoid committing home coordinates
+if (!process.env.HOME_LAT || !process.env.HOME_LON) {
+  throw new Error("HOME_LAT and HOME_LON environment variables are required")
+}
+
 export const HOME_COORDS = {
-  lat: parseFloat(process.env.HOME_LAT ?? "37.6879"),
-  lon: parseFloat(process.env.HOME_LON ?? "-122.4702"),
+  lat: parseFloat(process.env.HOME_LAT),
+  lon: parseFloat(process.env.HOME_LON),
 }
 
 export const USERS: User[] = [
