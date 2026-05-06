@@ -10,7 +10,7 @@ export function getHomeCoords(): { lat: number; lon: number } {
 export const USERS: User[] = [
   { id: "dad",     name: "Daddy",   color: "#33B679", gcalColorId: "2"  }, // Sage = green
   { id: "mom",     name: "Mommy",   color: "#039BE5", gcalColorId: "7"  }, // Peacock = blue
-  { id: "colette", name: "Colette", color: "#E67C73", gcalColorId: "4"  }, // Flamingo = pink
+  { id: "colette", name: "Colette", color: "#9C27B0", gcalColorId: "3"  }, // Grape = purple
   { id: "monti",   name: "Monti",   color: "#F6BF26", gcalColorId: "5"  }, // Banana = yellow
-  { id: "family",  name: "Family",  color: "#8E24AA", gcalColorId: "3"  }, // Grape = purple
+  { id: "family",  name: "Family",  color: "#D50000", gcalColorId: "11" }, // Tomato = red
 ]
