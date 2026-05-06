@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { addDays, isSameDay, startOfDay, isToday, format, startOfWeek } from "date-fns"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { addDays, isSameDay, startOfDay, isToday, format, startOfWeek, differenceInMinutes } from "date-fns"
 import { EventCard } from "@/components/EventCard"
 import { EventModal } from "@/components/EventModal"
 import { AddButton } from "@/components/AddButton"
@@ -19,7 +19,241 @@ interface WeekViewProps {
   initialWeekStart: string
 }
 
-// ── Sidebar: next 3 upcoming events (desktop only) ────────────
+// ── Constants ────────────────────────────────────────────────
+const START_HOUR = 6
+const END_HOUR = 23
+const PX_PER_HOUR = 56
+const PX_PER_MIN = PX_PER_HOUR / 60
+const TIME_GUTTER = 52 // px width of left time axis
+
+function topPx(ev: CalendarEvent): number {
+  const d = new Date(ev.start)
+  return Math.max(0, ((d.getHours() - START_HOUR) * 60 + d.getMinutes()) * PX_PER_MIN)
+}
+
+function heightPx(ev: CalendarEvent): number {
+  return Math.max(22, differenceInMinutes(new Date(ev.end), new Date(ev.start)) * PX_PER_MIN)
+}
+
+function nowTopPx(): number {
+  const n = new Date()
+  return ((n.getHours() - START_HOUR) * 60 + n.getMinutes()) * PX_PER_MIN
+}
+
+function hourLabel(h: number): string {
+  if (h === 0 || h === 24) return "12 AM"
+  if (h === 12) return "12 PM"
+  return h < 12 ? `${h} AM` : `${h - 12} PM`
+}
+
+function userColor(colorId: string): string {
+  return USERS.find(u => u.gcalColorId === colorId)?.color ?? "#64748b"
+}
+
+// ── Desktop time-grid week view ──────────────────────────────
+function DesktopTimeGrid({
+  days,
+  events,
+  now,
+  isCurrentWeek,
+  onEventClick,
+  onCreateAt,
+}: {
+  days: Date[]
+  events: CalendarEvent[]
+  now: Date
+  isCurrentWeek: boolean
+  onEventClick: (e: CalendarEvent) => void
+  onCreateAt: (day: Date, hour: number) => void
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Scroll to ~current time or 8am on mount
+  useEffect(() => {
+    if (!scrollRef.current) return
+    const target = isCurrentWeek ? Math.max(0, nowTopPx() - 120) : (8 - START_HOUR) * PX_PER_HOUR
+    scrollRef.current.scrollTop = target
+  }, [isCurrentWeek])
+
+  const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i)
+  const gridH = (END_HOUR - START_HOUR + 1) * PX_PER_HOUR
+  const showNow = isCurrentWeek && now.getHours() >= START_HOUR && now.getHours() <= END_HOUR
+  const nowTop = nowTopPx()
+
+  // Separate all-day from timed events per day
+  function timedForDay(day: Date) {
+    return events.filter(e => !e.isAllDay && isSameDay(new Date(e.start), day))
+  }
+  function allDayForDay(day: Date) {
+    return events.filter(e => {
+      if (!e.isAllDay) return false
+      return startOfDay(day) >= startOfDay(new Date(e.start)) &&
+             startOfDay(day) < startOfDay(new Date(e.end))
+    })
+  }
+
+  const hasAllDay = days.some(d => allDayForDay(d).length > 0)
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      {/* ── Day header row ── */}
+      <div className="flex shrink-0 border-b border-gray-200 dark:border-gray-800">
+        {/* Gutter placeholder */}
+        <div style={{ width: TIME_GUTTER }} className="shrink-0" />
+        {days.map(day => {
+          const today = isToday(day)
+          return (
+            <div key={day.toISOString()} className="flex-1 flex flex-col items-center py-2 border-l border-gray-200 dark:border-gray-800">
+              <p className={`text-xs uppercase tracking-widest font-medium ${today ? "text-gray-950 dark:text-white" : "text-gray-400"}`}>
+                {format(day, "EEE")}
+              </p>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center mt-0.5 ${today ? "bg-gray-950 dark:bg-white" : ""}`}>
+                <p className={`text-xl font-bold tabular-nums ${today ? "text-white dark:text-gray-950" : "text-gray-500 dark:text-gray-400"}`}>
+                  {format(day, "d")}
+                </p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── All-day row ── */}
+      {hasAllDay && (
+        <div className="flex shrink-0 border-b border-gray-200 dark:border-gray-800 min-h-[32px]">
+          <div style={{ width: TIME_GUTTER }} className="shrink-0 flex items-center justify-end pr-2">
+            <span className="text-xs text-gray-400 dark:text-gray-600">all-day</span>
+          </div>
+          {days.map(day => {
+            const dayAllDay = allDayForDay(day)
+            return (
+              <div key={day.toISOString()} className="flex-1 border-l border-gray-200 dark:border-gray-800 px-0.5 py-0.5 flex flex-col gap-0.5">
+                {dayAllDay.map(e => {
+                  const c = userColor(e.colorId)
+                  return (
+                    <button
+                      key={e.id}
+                      onClick={() => onEventClick(e)}
+                      className="w-full text-left rounded px-1.5 py-0.5 text-xs font-medium truncate text-white"
+                      style={{ backgroundColor: c }}
+                    >
+                      {e.title}
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Scrollable time grid ── */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        <div className="flex" style={{ height: gridH }}>
+
+          {/* Time axis */}
+          <div style={{ width: TIME_GUTTER }} className="shrink-0 relative select-none">
+            {hours.map(h => (
+              <div
+                key={h}
+                className="absolute right-0 flex items-start"
+                style={{ top: (h - START_HOUR) * PX_PER_HOUR }}
+              >
+                <span className="text-xs text-gray-400 dark:text-gray-600 tabular-nums pr-2 -mt-2 text-right leading-none">
+                  {hourLabel(h)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Day columns */}
+          <div className="flex flex-1 relative">
+            {days.map(day => {
+              const dayTimed = timedForDay(day)
+              const today = isToday(day)
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={`flex-1 relative border-l border-gray-200 dark:border-gray-800 ${today ? "bg-blue-50/30 dark:bg-white/[0.02]" : ""}`}
+                >
+                  {/* Hour lines */}
+                  {hours.map(h => (
+                    <div
+                      key={h}
+                      className="absolute left-0 right-0 pointer-events-none"
+                      style={{ top: (h - START_HOUR) * PX_PER_HOUR }}
+                    >
+                      <div className="border-t border-gray-100 dark:border-gray-800/80" />
+                      {/* Half-hour line */}
+                      <div
+                        className="absolute left-0 right-0 border-t border-dashed border-gray-100 dark:border-gray-800/40"
+                        style={{ top: PX_PER_HOUR / 2 }}
+                      />
+                    </div>
+                  ))}
+
+                  {/* Click-to-create zones */}
+                  {hours.map(h => (
+                    <div
+                      key={h}
+                      className="absolute left-0 right-0 cursor-pointer hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors"
+                      style={{ top: (h - START_HOUR) * PX_PER_HOUR, height: PX_PER_HOUR }}
+                      onClick={() => onCreateAt(day, h)}
+                    />
+                  ))}
+
+                  {/* Events */}
+                  {dayTimed.map(e => {
+                    const top = topPx(e)
+                    const height = heightPx(e)
+                    const c = userColor(e.colorId)
+                    const short = height < 36
+                    return (
+                      <button
+                        key={e.id}
+                        onClick={ev => { ev.stopPropagation(); onEventClick(e) }}
+                        className="absolute left-0.5 right-0.5 rounded-lg overflow-hidden text-left z-10 shadow-sm hover:brightness-95 active:brightness-90 transition-all"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: c + "dd",
+                          borderLeft: `3px solid ${c}`,
+                        }}
+                      >
+                        <div className="px-1.5 py-0.5 min-w-0 h-full flex flex-col justify-start">
+                          <p className={`text-white font-semibold leading-tight truncate ${short ? "text-xs" : "text-xs"}`}>
+                            {e.title}
+                          </p>
+                          {!short && (
+                            <p className="text-white/75 text-xs leading-tight truncate">
+                              {format(new Date(e.start), "h:mm")}–{format(new Date(e.end), "h:mm a")}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            })}
+
+            {/* Now indicator spanning all columns */}
+            {showNow && (
+              <div
+                className="absolute left-0 right-0 flex items-center pointer-events-none z-20"
+                style={{ top: nowTop }}
+              >
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0 -ml-1.5" />
+                <div className="flex-1 border-t-2 border-red-500" />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Sidebar: upcoming events ─────────────────────────────────
 function UpcomingSidebar({ events, now }: { events: CalendarEvent[]; now: Date }) {
   const upcoming = events
     .filter(e => !e.isAllDay && new Date(e.start) > now)
@@ -40,7 +274,7 @@ function UpcomingSidebar({ events, now }: { events: CalendarEvent[]; now: Date }
   }
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 border-l border-gray-200 dark:border-gray-800 px-4 py-4 gap-4 overflow-y-auto">
+    <aside className="hidden lg:flex flex-col w-56 shrink-0 border-l border-gray-200 dark:border-gray-800 px-4 py-4 gap-4 overflow-y-auto">
       <p className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-600 font-semibold">Upcoming</p>
 
       {current && (
@@ -83,7 +317,7 @@ function UpcomingSidebar({ events, now }: { events: CalendarEvent[]; now: Date }
   )
 }
 
-// ── Mobile month-style grid ────────────────────────────────────
+// ── Mobile grid (unchanged) ──────────────────────────────────
 function MobileWeekGrid({
   days, events, selectedDay, onSelectDay, onEditEvent, selectedPeople
 }: {
@@ -108,14 +342,12 @@ function MobileWeekGrid({
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Day headers */}
       <div className="grid grid-cols-7 px-2 pt-1 pb-0.5">
         {["M","T","W","T","F","S","S"].map((d, i) => (
           <p key={i} className="text-center text-xs text-gray-400 font-medium py-1">{d}</p>
         ))}
       </div>
 
-      {/* Day cells */}
       <div className="grid grid-cols-7 px-2 gap-y-1">
         {days.map(day => {
           const dayEvents = eventsForDay(day)
@@ -130,18 +362,11 @@ function MobileWeekGrid({
               onClick={() => onSelectDay(day)}
               className={`flex flex-col items-center py-1 rounded-xl transition-colors ${selected ? "bg-gray-100 dark:bg-gray-800" : ""}`}
             >
-              {/* Date number */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-0.5 ${
-                today ? "bg-gray-950 dark:bg-white" : ""
-              }`}>
-                <span className={`text-sm font-semibold tabular-nums ${
-                  today ? "text-white dark:text-gray-950" : selected ? "text-gray-950 dark:text-white" : "text-gray-500 dark:text-gray-400"
-                }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-0.5 ${today ? "bg-gray-950 dark:bg-white" : ""}`}>
+                <span className={`text-sm font-semibold tabular-nums ${today ? "text-white dark:text-gray-950" : selected ? "text-gray-950 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}>
                   {format(day, "d")}
                 </span>
               </div>
-
-              {/* Event pills */}
               <div className="flex flex-col gap-0.5 w-full px-0.5">
                 {pills.map(e => {
                   const c = USERS.find(u => u.gcalColorId === e.colorId)?.color ?? "#64748b"
@@ -163,7 +388,6 @@ function MobileWeekGrid({
         })}
       </div>
 
-      {/* Selected day detail */}
       <div className="flex-1 overflow-y-auto border-t border-gray-200 dark:border-gray-800 mt-2">
         <div className="px-4 pt-3 pb-2 flex items-center gap-2">
           <p className="text-gray-950 dark:text-white font-semibold text-base">
@@ -227,6 +451,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
   const now = new Date(tick)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
+  // Apply person filter for mobile only (desktop filters inline)
   function eventsForDay(day: Date) {
     const source = selectedPeople.length === 0 ? events : events.filter(e => selectedPeople.includes(e.colorId))
     return source.filter(e => {
@@ -234,6 +459,8 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
       return isSameDay(new Date(e.start), day)
     })
   }
+
+  const filteredEvents = selectedPeople.length === 0 ? events : events.filter(e => selectedPeople.includes(e.colorId))
 
   const goToPrev = () => { const p = addDays(weekStart, -7); setWeekStart(p); fetchNow(p) }
   const goToNext = () => { const n = addDays(weekStart, 7); setWeekStart(n); fetchNow(n) }
@@ -247,14 +474,15 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
   return (
     <>
       <div className="flex flex-1 overflow-hidden">
-        {/* ── Desktop week grid ── */}
+        {/* ── Desktop ── */}
         <div className="hidden md:flex flex-col flex-1 overflow-hidden">
-          <div className="flex items-center justify-between px-8 py-4 shrink-0">
-            <button onClick={goToPrev} className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-3xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" aria-label="Previous week">‹</button>
+          {/* Nav bar */}
+          <div className="flex items-center justify-between px-8 py-3 shrink-0 border-b border-gray-200 dark:border-gray-800">
+            <button onClick={goToPrev} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-2xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" aria-label="Previous week">‹</button>
             <div className="text-center">
-              <p className="text-xl text-gray-600 dark:text-gray-300">{weekLabel}</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">{weekLabel}</p>
               <div className="flex items-center justify-center gap-3 mt-0.5">
-                <p className={`text-sm ${stale ? "text-amber-500" : "text-gray-500 dark:text-gray-600"}`}>
+                <p className={`text-xs ${stale ? "text-amber-500" : "text-gray-400 dark:text-gray-600"}`}>
                   {stale ? "Sync stale" : `Synced ${format(new Date(lastFetchedAt), "h:mm a")}`}
                 </p>
                 {!isCurrentWeek && (
@@ -262,37 +490,23 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
                 )}
               </div>
             </div>
-            <button onClick={goToNext} className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-3xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" aria-label="Next week">›</button>
+            <button onClick={goToNext} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-2xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" aria-label="Next week">›</button>
           </div>
 
           <PersonFilter selected={selectedPeople} onChange={setSelectedPeople} />
 
-          <div className="flex-1 overflow-x-auto px-4 pb-24">
-            <div className="grid grid-cols-7 gap-2 min-w-[700px]">
-              {days.map(day => {
-                const dayEvents = eventsForDay(day)
-                const today = isToday(day)
-                return (
-                  <div key={day.toISOString()} className={`flex flex-col rounded-xl p-3 ${today ? "bg-gray-50 dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700" : ""}`}>
-                    <div className="text-center mb-3 flex flex-col items-center min-h-14 justify-center">
-                      <p className={`text-sm uppercase tracking-widest ${today ? "text-gray-950 dark:text-white" : "text-gray-500"}`}>{format(day, "EEE")}</p>
-                      <p className={`text-3xl font-bold tabular-nums leading-tight ${today ? "text-gray-950 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}>{format(day, "d")}</p>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      {dayEvents.map(e => (
-                        <EventCard key={e.id} event={e} compact onClick={() => setModal({ mode: "edit", event: e })} />
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+          <DesktopTimeGrid
+            days={days}
+            events={filteredEvents}
+            now={now}
+            isCurrentWeek={isCurrentWeek}
+            onEventClick={e => setModal({ mode: "edit", event: e })}
+            onCreateAt={(day, hour) => setModal({ mode: "create" })}
+          />
         </div>
 
-        {/* ── Mobile Apple-style grid ── */}
+        {/* ── Mobile ── */}
         <div className="flex md:hidden flex-col flex-1 overflow-hidden">
-          {/* Nav */}
           <div className="flex items-center justify-between px-4 py-2 shrink-0">
             <button onClick={goToPrev} className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white text-2xl flex items-center justify-center">‹</button>
             <div className="text-center">
@@ -314,7 +528,6 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
           />
         </div>
 
-        {/* Desktop right sidebar */}
         <UpcomingSidebar events={events} now={now} />
       </div>
 
