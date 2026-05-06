@@ -12,6 +12,7 @@ export interface User {
   name: string
   color: string
   gcalColorId: string
+  avatar?: string
 }
 
 export interface ScreensaverConfig {
