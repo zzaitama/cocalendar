@@ -110,7 +110,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
               <span className="text-4xl">{format(now, "h:mm")}</span>
               <span className="text-2xl text-gray-500 dark:text-gray-400 ml-1">{format(now, "a")}</span>
             </p>
-            {activePage === "day" && weather && (
+            {weather && (
               <button
                 onClick={() => setShowWeather(true)}
                 className="text-lg text-gray-500 dark:text-gray-400 flex items-center gap-1 px-2 py-1"
