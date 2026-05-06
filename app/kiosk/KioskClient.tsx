@@ -38,12 +38,10 @@ function formatTimeFull(iso: string): string {
 
 function formatTimeUntil(iso: string, now: Date): string {
   const diffMs = new Date(iso).getTime() - now.getTime()
-  if (diffMs <= 0) return 'now'
-  const mins = Math.floor(diffMs / 60000)
-  const h = Math.floor(mins / 60), m = mins % 60
-  if (h > 0 && m > 0) return `in ${h}h ${m}min`
-  if (h > 0) return `in ${h}h`
-  return `in ${m}min`
+  if (diffMs <= 0) return 'today'
+  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+  if (days === 1) return 'tomorrow'
+  return `in ${days} days`
 }
 
 function getNextEvent(events: CalendarEvent[], now: Date): CalendarEvent | null {
