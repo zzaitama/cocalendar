@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { SleepProvider } from "@/components/SleepProvider"
+import { AvatarProvider } from "@/context/AvatarContext"
 
 const Screensaver = dynamic(
   () => import("@/components/Screensaver").then(m => m.Screensaver),
@@ -36,8 +37,10 @@ export default function RootLayout({
           }}
         />
         <SleepProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-          <Screensaver />
+          <AvatarProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+            <Screensaver />
+          </AvatarProvider>
         </SleepProvider>
       </body>
     </html>
