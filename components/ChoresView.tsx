@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useAvatar } from "@/context/AvatarContext"
+import { USERS } from "@/lib/config"
 
 export interface Chore {
   id: string
@@ -97,6 +99,24 @@ function ChoreCard({ chore, onToggle, onDelete }: { chore: Chore; onToggle: () =
   )
 }
 
+function ChoreGroupHeader({ name, color, incompleteCount }: { name: string; color: string; incompleteCount: number }) {
+  const { getAvatar } = useAvatar()
+  const user = USERS.find(u => u.name === name)
+  const emoji = user ? getAvatar(user.id) : ""
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <div
+        className="w-8 h-8 rounded-full flex items-center justify-center text-lg border-2 shrink-0"
+        style={{ borderColor: color, backgroundColor: color + "22" }}
+      >
+        {emoji || <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />}
+      </div>
+      <p className="text-gray-950 dark:text-white text-xl font-bold">{name}</p>
+      <p className="text-gray-400 text-sm">{incompleteCount} remaining</p>
+    </div>
+  )
+}
+
 export function ChoresView() {
   const [chores, setChores] = useState<Chore[]>([])
   const [loading, setLoading] = useState(true)
@@ -149,11 +169,7 @@ export function ChoresView() {
           const complete = group.filter(c => c.completedAt)
           return (
             <div key={name}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                <p className="text-gray-950 dark:text-white text-xl font-bold">{name}</p>
-                <p className="text-gray-400 text-sm">{incomplete.length} remaining</p>
-              </div>
+              <ChoreGroupHeader name={name} color={color} incompleteCount={incomplete.length} />
               <div className="flex flex-col gap-2">
                 {incomplete.length === 0 && complete.length === 0 && (
                   <p className="text-gray-400 text-lg px-4">No chores</p>
