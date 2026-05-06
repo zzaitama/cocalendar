@@ -27,7 +27,6 @@ export function NavHeader({ activePage }: NavHeaderProps) {
   }, [])
 
   useEffect(() => {
-    if (activePage !== "day") return
     async function load() {
       const { fetchWeather } = await import("@/lib/weather")
       const data = await fetchWeather()
@@ -36,7 +35,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
     load()
     const interval = setInterval(load, 30 * 60_000)
     return () => clearInterval(interval)
-  }, [activePage])
+  }, [])
 
   const navLinks = [
     ["Day", "/", "day"],
@@ -55,7 +54,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
             <p className="text-gray-500 dark:text-gray-400 text-2xl" suppressHydrationWarning>
               {formatDate(now)}
             </p>
-            {activePage === "day" && weather && (
+            {weather && (
               <button
                 onClick={() => setShowWeather(true)}
                 className="text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors min-h-14 px-2 flex items-center gap-1"
