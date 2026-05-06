@@ -2,12 +2,27 @@
 
 import { useKioskData, type Chore } from './useKioskData'
 import { USERS } from '@/lib/config'
+import { AVATARS } from '@/lib/avatars'
 import type { CalendarEvent } from '@/types'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getUserColor(colorId: string): string {
   return USERS.find(u => u.gcalColorId === colorId)?.color ?? '#6b7280'
+}
+
+function getUserAvatar(colorId: string): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    const cached = localStorage.getItem('cocalendar-avatars')
+    if (!cached) return ''
+    const { avatars, options } = JSON.parse(cached) as { avatars: Record<string, string>; options: { id: string; emoji: string }[] }
+    const user = USERS.find(u => u.gcalColorId === colorId)
+    if (!user) return ''
+    const avatarId = avatars[user.id]
+    if (!avatarId) return ''
+    return options?.find(a => a.id === avatarId)?.emoji ?? AVATARS.find(a => a.id === avatarId)?.emoji ?? ''
+  } catch { return '' }
 }
 
 function formatDate(d: Date): string {
@@ -72,6 +87,27 @@ function sortChores(chores: Chore[]): Chore[] {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
+function AvatarBadge({ colorId, size = 28 }: { colorId: string; size?: number }) {
+  const color = getUserColor(colorId)
+  const emoji = getUserAvatar(colorId)
+  if (!emoji) {
+    return (
+      <span
+        className="rounded-full shrink-0 inline-block"
+        style={{ width: size, height: size, backgroundColor: color }}
+      />
+    )
+  }
+  return (
+    <span
+      className="rounded-full shrink-0 inline-flex items-center justify-center border-2 bg-black/20"
+      style={{ width: size, height: size, borderColor: color, fontSize: size * 0.55 }}
+    >
+      {emoji}
+    </span>
+  )
+}
+
 function TopBar({ now }: { now: Date }) {
   return (
     <div className="h-[80px] flex items-center justify-between px-12 border-b border-white/10 shrink-0">
@@ -95,9 +131,10 @@ function HeroPanel({ event, now }: { event: CalendarEvent | null; now: Date }) {
           <>
             <div className="flex items-baseline justify-between gap-8">
               <span
-                className="text-[72px] font-bold leading-tight truncate"
+                className="text-[72px] font-bold leading-tight truncate flex items-center gap-4"
                 style={{ color: getUserColor(event.colorId) }}
               >
+                <AvatarBadge colorId={event.colorId} size={56} />
                 {event.title}
               </span>
               <span className="text-[48px] font-medium shrink-0 text-white/85">
@@ -135,10 +172,7 @@ function EventsList({ events }: { events: CalendarEvent[] }) {
                 {event.isAllDay ? 'all day' : formatTimeShort(event.start)}
               </span>
               <span className="text-[32px] text-white truncate flex-1">{event.title}</span>
-              <span
-                className="shrink-0 rounded-full w-4 h-4"
-                style={{ backgroundColor: getUserColor(event.colorId) }}
-              />
+              <AvatarBadge colorId={event.colorId} size={28} />
             </div>
           ))}
         </div>
