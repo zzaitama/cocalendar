@@ -1,6 +1,8 @@
 "use client"
 
 import { useRef, useEffect } from "react"
+import { useAvatar } from "@/context/AvatarContext"
+import { USERS } from "@/lib/config"
 import { format, differenceInMinutes } from "date-fns"
 import type { CalendarEvent } from "@/types"
 
@@ -78,6 +80,29 @@ function hourLabel(h: number): string {
   return h < 12 ? `${h} AM` : `${h - 12} PM`
 }
 
+function LaneHeaders() {
+  const { getAvatar } = useAvatar()
+  return (
+    <div className="flex shrink-0 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+      <div className="w-14 shrink-0" />
+      {LANE_CONFIG.map(lane => {
+        const user = USERS.find(u => u.name === lane.name)
+        const emoji = user ? getAvatar(user.id) : ""
+        return (
+          <div
+            key={lane.name}
+            className="flex-1 py-2 text-center text-base font-semibold border-l border-gray-200 dark:border-gray-800 truncate px-1 flex flex-col items-center justify-center gap-0.5"
+            style={{ color: GCAL_COLOR_HEX[lane.googleColor] }}
+          >
+            {emoji && <span className="text-lg leading-none">{emoji}</span>}
+            <span>{lane.name}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -98,18 +123,7 @@ export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProp
   return (
     <>
       {/* Lane headers */}
-      <div className="flex shrink-0 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
-        <div className="w-14 shrink-0" />
-        {LANE_CONFIG.map(lane => (
-          <div
-            key={lane.name}
-            className="flex-1 py-2 text-center text-base font-semibold border-l border-gray-200 dark:border-gray-800 truncate px-1"
-            style={{ color: GCAL_COLOR_HEX[lane.googleColor] }}
-          >
-            {lane.name}
-          </div>
-        ))}
-      </div>
+      <LaneHeaders />
 
       {/* Scrollable grid */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto pb-32">
