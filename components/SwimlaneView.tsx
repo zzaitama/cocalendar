@@ -103,7 +103,7 @@ export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProp
         {LANE_CONFIG.map(lane => (
           <div
             key={lane.name}
-            className="flex-1 py-2 text-center text-sm font-semibold border-l border-gray-200 dark:border-gray-800 truncate px-1"
+            className="flex-1 py-2 text-center text-base font-semibold border-l border-gray-200 dark:border-gray-800 truncate px-1"
             style={{ color: GCAL_COLOR_HEX[lane.googleColor] }}
           >
             {lane.name}
