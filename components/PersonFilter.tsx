@@ -1,6 +1,7 @@
 "use client"
 
 import { USERS } from "@/lib/config"
+import { useAvatar } from "@/context/AvatarContext"
 
 interface PersonFilterProps {
   selected: string[]
@@ -8,6 +9,8 @@ interface PersonFilterProps {
 }
 
 export function PersonFilter({ selected, onChange }: PersonFilterProps) {
+  const { getAvatar } = useAvatar()
+
   function toggle(colorId: string) {
     if (selected.includes(colorId)) {
       onChange(selected.filter(id => id !== colorId))
@@ -21,18 +24,20 @@ export function PersonFilter({ selected, onChange }: PersonFilterProps) {
       {USERS.map(user => {
         const isSelected = selected.includes(user.gcalColorId)
         const active = selected.length === 0 || isSelected
+        const emoji = getAvatar(user.id)
         return (
           <button
             key={user.id}
             onClick={() => toggle(user.gcalColorId)}
-            className={`flex-1 min-h-14 rounded-full text-sm font-semibold transition-colors ${active ? "" : "bg-gray-100 dark:bg-slate-900 text-gray-500 dark:text-gray-600"}`}
+            className={`flex-1 min-h-14 rounded-full text-sm font-semibold transition-colors flex flex-col items-center justify-center gap-0.5 ${active ? "" : "bg-gray-100 dark:bg-slate-900 text-gray-500 dark:text-gray-600"}`}
             style={{
               backgroundColor: active ? user.color + "26" : undefined,
               color: active ? user.color : undefined,
               border: `2px solid ${active ? user.color : "transparent"}`,
             }}
           >
-            {user.name}
+            {emoji && <span className="text-lg leading-none">{emoji}</span>}
+            <span>{user.name}</span>
           </button>
         )
       })}
