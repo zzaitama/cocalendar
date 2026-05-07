@@ -1,14 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-warm: #FAF9F7;
+  --bg-card: #F5F3F0;
+  --color-dad: #33B679;
+  --color-mom: #039BE5;
+  --color-colette: #9C27B0;
+  --color-monti: #F6BF26;
+  --color-family: #D50000;
+}
+
+html {
+  font-family: 'Nunito', Arial, sans-serif;
+}
+
 body {
-  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-family: 'Nunito', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  background-color: var(--bg-warm);
+}
+
+.dark body {
+  background-color: #0f0f0f;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
