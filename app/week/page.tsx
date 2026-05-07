@@ -5,15 +5,12 @@ import { authOptions } from "@/lib/auth"
 import { getEvents } from "@/lib/google-calendar"
 import { weekRange } from "@/lib/utils"
 import { NavHeader } from "@/components/NavHeader"
-import { WeekView } from "@/components/WeekView"
+import { WeekViewToggle } from "@/components/WeekViewToggle"
 import type { CalendarEvent } from "@/types"
 
 export default async function WeekPage() {
   const session = await getServerSession(authOptions)
-
-  if (!session) {
-    redirect("/api/auth/signin")
-  }
+  if (!session) redirect("/api/auth/signin")
 
   let events: CalendarEvent[] = []
   try {
@@ -26,9 +23,9 @@ export default async function WeekPage() {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
 
   return (
-    <div className="h-screen overflow-hidden bg-white dark:bg-gray-950 flex flex-col">
+    <div className="h-screen overflow-hidden bg-[#FAF9F7] dark:bg-gray-950 flex flex-col">
       <NavHeader activePage="week" />
-      <WeekView initialEvents={events} initialWeekStart={weekStart} />
+      <WeekViewToggle initialEvents={events} initialWeekStart={weekStart} />
     </div>
   )
 }
