@@ -11,7 +11,10 @@
       "Bash(openssl rand *)",
       "Bash(npx vercel *)",
       "Bash(npm run *)",
-      "Bash(npm audit *)"
+      "Bash(npm audit *)",
+      "Bash(npx eslint *)",
+      "Bash(git check-ignore *)",
+      "Bash(git rm *)"
     ]
   }
 }
