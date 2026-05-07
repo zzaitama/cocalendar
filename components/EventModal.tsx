@@ -13,6 +13,21 @@ interface EventModalProps {
   onSaved: () => void
 }
 
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="flex items-center justify-between w-full py-3 px-4 rounded-2xl bg-stone-100 dark:bg-gray-800 transition-colors"
+    >
+      <span className="text-gray-900 dark:text-white font-semibold text-lg">{label}</span>
+      <div className={`w-12 h-7 rounded-full transition-colors relative ${checked ? "bg-gray-900 dark:bg-white" : "bg-stone-300 dark:bg-gray-600"}`}>
+        <div className={`absolute top-1 w-5 h-5 rounded-full bg-white dark:bg-gray-900 transition-transform ${checked ? "translate-x-6" : "translate-x-1"}`} />
+      </div>
+    </button>
+  )
+}
+
 export function EventModal({ mode, event, defaultDate, onClose, onSaved }: EventModalProps) {
   const { members } = useFamily()
   const nextHour = startOfHour(addHours(new Date(), 1))
@@ -21,6 +36,7 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
   const [date, setDate] = useState(
     event ? format(new Date(event.start), "yyyy-MM-dd") : (defaultDate ?? format(new Date(), "yyyy-MM-dd"))
   )
+  const [isAllDay, setIsAllDay] = useState(event?.isAllDay ?? false)
   const [startTime, setStartTime] = useState(
     event && !event.isAllDay ? format(new Date(event.start), "HH:mm") : format(nextHour, "HH:mm")
   )
@@ -30,21 +46,37 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
       : format(addHours(nextHour, 1), "HH:mm")
   )
   const [colorId, setColorId] = useState(event?.colorId ?? members[0]?.gcalColorId ?? "2")
+  const [notes, setNotes] = useState(event?.description ?? "")
+  const [addToCountdown, setAddToCountdown] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    titleRef.current?.focus()
-  }, [])
+  useEffect(() => { titleRef.current?.focus() }, [])
 
   async function handleSave() {
     if (!title.trim()) return
     setSaving(true)
     try {
-      const start = new Date(`${date}T${startTime}`).toISOString()
-      const end = new Date(`${date}T${endTime}`).toISOString()
-      const body = JSON.stringify({ title: title.trim(), start, end, colorId })
+      let start: string
+      let end: string
+
+      if (isAllDay) {
+        start = date
+        end = date
+      } else {
+        start = new Date(`${date}T${startTime}`).toISOString()
+        end = new Date(`${date}T${endTime}`).toISOString()
+      }
+
+      const body = JSON.stringify({
+        title: title.trim(),
+        start,
+        end,
+        colorId,
+        isAllDay,
+        description: notes.trim() || undefined,
+      })
 
       if (mode === "create") {
         await fetch("/api/events", {
@@ -59,6 +91,16 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
           body,
         })
       }
+
+      // Also add to countdowns if toggled
+      if (addToCountdown) {
+        await fetch("/api/countdowns", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: title.trim(), emoji: "🗓️", date }),
+        })
+      }
+
       onSaved()
       onClose()
     } catch {
@@ -67,10 +109,7 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
   }
 
   async function handleDelete() {
-    if (!confirmDelete) {
-      setConfirmDelete(true)
-      return
-    }
+    if (!confirmDelete) { setConfirmDelete(true); return }
     setSaving(true)
     try {
       await fetch(`/api/events/${event!.id}`, { method: "DELETE" })
@@ -81,21 +120,18 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") onClose()
-  }
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      onKeyDown={handleKeyDown}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose() }}
     >
-      <div className="w-full sm:max-w-lg bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl p-6 flex flex-col gap-5">
-        <h2 className="text-2xl font-bold text-gray-950 dark:text-white">
+      <div className="w-full sm:max-w-lg bg-[#FAF9F7] dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">
           {mode === "create" ? "New Event" : "Edit Event"}
         </h2>
 
+        {/* Title */}
         <input
           ref={titleRef}
           type="text"
@@ -103,39 +139,47 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleSave() }}
           placeholder="Event title"
-          className="w-full bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-2xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white placeholder:text-gray-400 dark:placeholder:text-gray-600"
+          className="w-full bg-stone-100 dark:bg-gray-800 text-gray-900 dark:text-white text-2xl rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white placeholder:text-stone-400 dark:placeholder:text-gray-600 font-bold"
         />
 
+        {/* All-day toggle */}
+        <Toggle label="All day" checked={isAllDay} onChange={setIsAllDay} />
+
+        {/* Date */}
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
+          className="w-full bg-stone-100 dark:bg-gray-800 text-gray-900 dark:text-white text-xl rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white font-semibold"
         />
 
-        <div className="flex gap-3 items-center">
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
-          />
-          <span className="text-gray-400 dark:text-gray-500 text-xl">–</span>
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white text-xl rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
-          />
-        </div>
+        {/* Time pickers — hidden when all-day */}
+        {!isAllDay && (
+          <div className="flex gap-3 items-center">
+            <input
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="flex-1 bg-stone-100 dark:bg-gray-800 text-gray-900 dark:text-white text-xl rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white font-semibold"
+            />
+            <span className="text-stone-400 dark:text-gray-500 text-xl font-bold">–</span>
+            <input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="flex-1 bg-stone-100 dark:bg-gray-800 text-gray-900 dark:text-white text-xl rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white font-semibold"
+            />
+          </div>
+        )}
 
-        <div className="flex gap-3">
+        {/* Person selector */}
+        <div className="flex gap-2">
           {members.map((user) => (
             <button
               key={user.id}
               onClick={() => setColorId(user.gcalColorId)}
-              className={`flex-1 min-h-14 rounded-xl text-lg font-semibold transition-all ${
-                colorId === user.gcalColorId ? "ring-2 ring-gray-950 dark:ring-white scale-105" : "opacity-60"
+              className={`flex-1 min-h-12 rounded-2xl text-base font-bold transition-all ${
+                colorId === user.gcalColorId ? "ring-2 ring-gray-900 dark:ring-white scale-105" : "opacity-60"
               }`}
               style={{ backgroundColor: user.color, color: "#fff" }}
             >
@@ -144,15 +188,28 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
           ))}
         </div>
 
+        {/* Notes */}
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Add notes…"
+          rows={3}
+          className="w-full bg-stone-100 dark:bg-gray-800 text-gray-900 dark:text-white text-lg rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white placeholder:text-stone-400 dark:placeholder:text-gray-600 font-medium resize-none"
+        />
+
+        {/* Add to countdown toggle */}
+        <Toggle label="📅 Add to countdowns" checked={addToCountdown} onChange={setAddToCountdown} />
+
+        {/* Actions */}
         <div className="flex gap-3">
           {mode === "edit" && (
             <button
               onClick={handleDelete}
               disabled={saving}
-              className={`min-h-14 px-5 rounded-xl text-xl font-semibold transition-colors ${
+              className={`min-h-14 px-5 rounded-2xl text-xl font-bold transition-colors ${
                 confirmDelete
                   ? "bg-red-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+                  : "bg-stone-100 dark:bg-gray-800 text-red-500 dark:text-red-400"
               }`}
             >
               {confirmDelete ? "Confirm delete" : "Delete"}
@@ -162,14 +219,14 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
             <button
               onClick={onClose}
               disabled={saving}
-              className="min-h-14 px-6 rounded-xl text-xl font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="min-h-14 px-6 rounded-2xl text-xl font-bold bg-stone-100 dark:bg-gray-800 text-stone-600 dark:text-gray-300"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving || !title.trim()}
-              className="min-h-14 px-6 rounded-xl text-xl font-semibold bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-40"
+              className="min-h-14 px-6 rounded-2xl text-xl font-bold bg-gray-900 dark:bg-white text-white dark:text-gray-900 disabled:opacity-40"
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -179,4 +236,3 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
     </div>
   )
 }
-
