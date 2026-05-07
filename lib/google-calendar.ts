@@ -12,6 +12,7 @@ function getClient(accessToken: string) {
 function mapItem(item: {
   id?: string | null
   summary?: string | null
+  description?: string | null
   start?: { dateTime?: string | null; date?: string | null } | null
   end?: { dateTime?: string | null; date?: string | null } | null
   colorId?: string | null
@@ -24,6 +25,7 @@ function mapItem(item: {
     end: item.end?.dateTime ?? item.end?.date ?? "",
     colorId: item.colorId ?? "0",
     isAllDay,
+    description: item.description ?? undefined,
   }
 }
 
@@ -45,7 +47,7 @@ export async function getEvents(
 
 export async function createEvent(
   accessToken: string,
-  data: { title: string; start: string; end: string; colorId: string }
+  data: { title: string; start: string; end: string; colorId: string; isAllDay?: boolean; description?: string }
 ): Promise<CalendarEvent> {
   const calendar = getClient(accessToken)
   const res = await calendar.events.insert({
@@ -53,8 +55,9 @@ export async function createEvent(
     requestBody: {
       summary: data.title,
       colorId: data.colorId,
-      start: { dateTime: data.start },
-      end: { dateTime: data.end },
+      description: data.description || undefined,
+      start: data.isAllDay ? { date: data.start.slice(0, 10) } : { dateTime: data.start },
+      end: data.isAllDay ? { date: data.end.slice(0, 10) } : { dateTime: data.end },
     },
   })
   return mapItem(res.data)
@@ -63,7 +66,7 @@ export async function createEvent(
 export async function updateEvent(
   accessToken: string,
   id: string,
-  data: { title: string; start: string; end: string; colorId: string }
+  data: { title: string; start: string; end: string; colorId: string; isAllDay?: boolean; description?: string }
 ): Promise<CalendarEvent> {
   const calendar = getClient(accessToken)
   const res = await calendar.events.patch({
@@ -72,8 +75,9 @@ export async function updateEvent(
     requestBody: {
       summary: data.title,
       colorId: data.colorId,
-      start: { dateTime: data.start },
-      end: { dateTime: data.end },
+      description: data.description || undefined,
+      start: data.isAllDay ? { date: data.start.slice(0, 10) } : { dateTime: data.start },
+      end: data.isAllDay ? { date: data.end.slice(0, 10) } : { dateTime: data.end },
     },
   })
   return mapItem(res.data)
