@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { format, addHours, startOfHour } from "date-fns"
-import { USERS } from "@/lib/config"
+import { useFamily } from "@/context/FamilyContext"
 import type { CalendarEvent } from "@/types"
 
 interface EventModalProps {
@@ -14,6 +14,7 @@ interface EventModalProps {
 }
 
 export function EventModal({ mode, event, defaultDate, onClose, onSaved }: EventModalProps) {
+  const { members } = useFamily()
   const nextHour = startOfHour(addHours(new Date(), 1))
 
   const [title, setTitle] = useState(event?.title ?? "")
@@ -28,7 +29,7 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
       ? format(new Date(event.end), "HH:mm")
       : format(addHours(nextHour, 1), "HH:mm")
   )
-  const [colorId, setColorId] = useState(event?.colorId ?? USERS[0].gcalColorId)
+  const [colorId, setColorId] = useState(event?.colorId ?? members[0]?.gcalColorId ?? "2")
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
@@ -129,7 +130,7 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
         </div>
 
         <div className="flex gap-3">
-          {USERS.map((user) => (
+          {members.map((user) => (
             <button
               key={user.id}
               onClick={() => setColorId(user.gcalColorId)}
@@ -178,3 +179,4 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
     </div>
   )
 }
+
