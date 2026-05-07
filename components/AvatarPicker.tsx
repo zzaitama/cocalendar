@@ -1,7 +1,7 @@
 "use client"
 
 import { useAvatar } from "@/context/AvatarContext"
-import { USERS } from "@/lib/config"
+import { useFamily } from "@/context/FamilyContext"
 
 interface AvatarPickerProps {
   userId: string
@@ -10,8 +10,10 @@ interface AvatarPickerProps {
 
 export function AvatarPicker({ userId, onClose }: AvatarPickerProps) {
   const { options, avatars, setAvatar } = useAvatar()
-  const user = USERS.find(u => u.id === userId)
+  const { members } = useFamily()
+  const user = members.find(u => u.id === userId)
   const currentAvatarId = avatars[userId] ?? ""
+  const userColor = user?.color ?? "#64748b"
 
   async function handleSelect(avatarId: string) {
     await setAvatar(userId, avatarId)
@@ -54,8 +56,8 @@ export function AvatarPicker({ userId, onClose }: AvatarPickerProps) {
                     : "bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 dark:hover:bg-gray-700"
                 }`}
                 style={isSelected
-                  ? { backgroundColor: (user?.color ?? "#64748b") + "22", outline: `2px solid ${user?.color ?? "#64748b"}` }
-                  : {}}
+                  ? { backgroundColor: userColor + "22", outline: `2px solid ${userColor}` }
+                  : undefined}
               >
                 {avatar.emoji}
               </button>
