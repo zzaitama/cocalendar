@@ -24,44 +24,49 @@ export function AvatarPicker({ userId, onClose }: AvatarPickerProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-900 rounded-2xl p-8 w-full max-w-sm flex flex-col gap-6"
+        className="bg-[#FAF9F7] dark:bg-gray-900 rounded-3xl p-8 w-full max-w-sm flex flex-col gap-6"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <p className="text-gray-950 dark:text-white text-2xl font-bold">
+          <p className="text-gray-900 dark:text-white text-2xl font-extrabold">
             Choose avatar
-            {user && <span className="font-normal text-gray-400 ml-2">for {user.name}</span>}
+            {user && <span className="font-semibold text-stone-400 ml-2">for {user.name}</span>}
           </p>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center text-xl"
+            className="w-10 h-10 rounded-full bg-stone-100 dark:bg-gray-800 text-stone-500 flex items-center justify-center text-xl font-bold"
           >
             ✕
           </button>
         </div>
 
         <div className="grid grid-cols-6 gap-2">
-          {options.map(avatar => (
-            <button
-              key={avatar.id}
-              onClick={() => handleSelect(avatar.id)}
-              title={avatar.label}
-              className={`w-full aspect-square rounded-xl text-3xl flex items-center justify-center transition-all ${
-                currentAvatarId === avatar.id
-                  ? "ring-2 scale-110"
-                  : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
-              }`}
-              style={currentAvatarId === avatar.id ? { ringColor: user?.color } : {}}
-            >
-              {avatar.emoji}
-            </button>
-          ))}
+          {options.map(avatar => {
+            const isSelected = currentAvatarId === avatar.id
+            return (
+              <button
+                key={avatar.id}
+                onClick={() => handleSelect(avatar.id)}
+                title={avatar.label}
+                className={`w-full aspect-square rounded-2xl text-3xl flex items-center justify-center transition-all ${
+                  isSelected
+                    ? "scale-110"
+                    : "bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 dark:hover:bg-gray-700"
+                }`}
+                style={isSelected
+                  ? { backgroundColor: (user?.color ?? "#64748b") + "22", outline: `2px solid ${user?.color ?? "#64748b"}` }
+                  : {}}
+              >
+                {avatar.emoji}
+              </button>
+            )
+          })}
         </div>
 
         {currentAvatarId && (
           <button
             onClick={() => handleSelect("")}
-            className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-sm text-stone-400 hover:text-stone-600 dark:hover:text-gray-300 transition-colors font-semibold"
           >
             Remove avatar
           </button>
