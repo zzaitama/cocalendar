@@ -5,6 +5,7 @@ export interface CalendarEvent {
   end: string
   colorId: string
   isAllDay: boolean
+  description?: string
 }
 
 export interface User {
