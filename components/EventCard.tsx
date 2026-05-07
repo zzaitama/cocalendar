@@ -1,5 +1,7 @@
+"use client"
+
 import type { CalendarEvent } from "@/types"
-import { USERS } from "@/lib/config"
+import { useFamily } from "@/context/FamilyContext"
 import { formatEventTime, formatTime } from "@/lib/utils"
 import { useAvatar } from "@/context/AvatarContext"
 
@@ -18,7 +20,8 @@ function hexToRgb(hex: string): string {
 }
 
 export function EventCard({ event, featured = false, compact = false, onClick }: EventCardProps) {
-  const user = USERS.find((u) => u.gcalColorId === event.colorId)
+  const { members } = useFamily()
+  const user = members.find((u) => u.gcalColorId === event.colorId)
   const color = user?.color ?? "#64748b"
   const { getAvatar } = useAvatar()
   const emoji = user ? getAvatar(user.id) : ""
@@ -40,11 +43,9 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
       style={cardStyle}
     >
       <div className="flex flex-col justify-center px-3 py-2.5 gap-0.5 min-w-0 flex-1">
-        <p
-          className={`font-bold text-gray-900 dark:text-white leading-tight truncate ${
-            featured ? "text-4xl" : compact ? "text-lg" : "text-2xl"
-          }`}
-        >
+        <p className={`font-bold text-gray-900 dark:text-white leading-tight truncate ${
+          featured ? "text-4xl" : compact ? "text-lg" : "text-2xl"
+        }`}>
           {event.title}
         </p>
         {compact && !event.isAllDay && (
