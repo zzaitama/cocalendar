@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import { USERS } from "@/lib/config"
 import { useTheme, type ThemeOverride } from "@/context/ThemeContext"
 import { ScreensaverSettings } from "./ScreensaverSettings"
 import { FamilyMemberEditor } from "./FamilyMemberEditor"
@@ -94,3 +93,4 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     </div>
   )
 }
+
