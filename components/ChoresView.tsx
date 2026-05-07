@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAvatar } from "@/context/AvatarContext"
+import { USERS } from "@/lib/config"
 
 export interface Chore {
   id: string
@@ -197,5 +198,6 @@ export function ChoresView() {
     </div>
   )
 }
+
 
 
