@@ -47,17 +47,17 @@ export function NavHeader({ activePage }: NavHeaderProps) {
 
   return (
     <>
-      {/* ── Desktop / Pi header (md+): single row with clock left, nav right ── */}
-      <header className="hidden md:flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-gray-800">
+      {/* ── Desktop / Pi header ── */}
+      <header className="hidden md:flex items-center justify-between px-8 py-5 border-b border-stone-200 dark:border-gray-800 bg-[#FAF9F7] dark:bg-gray-950">
         <div>
           <div className="flex items-center gap-3">
-            <p className="text-gray-500 dark:text-gray-400 text-2xl" suppressHydrationWarning>
+            <p className="text-stone-400 dark:text-gray-400 text-xl font-semibold" suppressHydrationWarning>
               {formatDate(now)}
             </p>
             {weather && (
               <button
                 onClick={() => setShowWeather(true)}
-                className="text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors min-h-14 px-2 flex items-center gap-1"
+                className="text-xl text-stone-400 dark:text-gray-400 hover:text-stone-600 dark:hover:text-gray-200 transition-colors min-h-14 px-2 flex items-center gap-1.5 font-semibold"
                 aria-label="Weather detail"
               >
                 <span>{weather.icon}</span>
@@ -65,22 +65,22 @@ export function NavHeader({ activePage }: NavHeaderProps) {
               </button>
             )}
           </div>
-          <p className="text-gray-950 dark:text-white font-bold tabular-nums leading-none mt-1" suppressHydrationWarning>
+          <p className="text-gray-900 dark:text-white font-extrabold tabular-nums leading-none mt-0.5" suppressHydrationWarning>
             <span className="text-7xl">{format(now, "h:mm")}</span>
-            <span className="text-4xl text-gray-500 dark:text-gray-400 ml-2">{format(now, "a")}</span>
+            <span className="text-4xl text-stone-400 dark:text-gray-400 ml-2 font-bold">{format(now, "a")}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <nav className="flex gap-3">
+          <nav className="flex gap-2">
             {navLinks.map(([label, href, page]) => (
               <Link
                 key={page}
                 href={href}
-                className={`px-6 py-4 rounded-xl text-2xl font-semibold min-h-14 flex items-center transition-colors ${
+                className={`px-5 py-3.5 rounded-2xl text-xl font-bold min-h-14 flex items-center transition-all ${
                   activePage === page
-                    ? "bg-gray-950 dark:bg-white text-white dark:text-gray-950"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "bg-gray-900 dark:bg-white text-white dark:text-gray-950 shadow-sm"
+                    : "bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-gray-300 hover:bg-stone-200 dark:hover:bg-gray-700 hover:text-stone-700"
                 }`}
               >
                 {label}
@@ -90,7 +90,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
           <SleepButton onClick={sleep} />
           <button
             onClick={() => setShowSettings(true)}
-            className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="w-11 h-11 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-gray-400 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-gray-700 transition-colors"
             aria-label="Settings"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -101,19 +101,18 @@ export function NavHeader({ activePage }: NavHeaderProps) {
         </div>
       </header>
 
-      {/* ── Mobile header: compact clock + weather top row, nav scrolls below ── */}
-      <header className="flex md:hidden flex-col border-b border-gray-200 dark:border-gray-800">
-        {/* Top row: clock + weather + settings */}
+      {/* ── Mobile header ── */}
+      <header className="flex md:hidden flex-col border-b border-stone-200 dark:border-gray-800 bg-[#FAF9F7] dark:bg-gray-950">
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <div className="flex items-center gap-2">
-            <p className="text-gray-950 dark:text-white font-bold tabular-nums" suppressHydrationWarning>
+            <p className="text-gray-900 dark:text-white font-extrabold tabular-nums" suppressHydrationWarning>
               <span className="text-4xl">{format(now, "h:mm")}</span>
-              <span className="text-2xl text-gray-500 dark:text-gray-400 ml-1">{format(now, "a")}</span>
+              <span className="text-2xl text-stone-400 dark:text-gray-400 ml-1 font-bold">{format(now, "a")}</span>
             </p>
             {weather && (
               <button
                 onClick={() => setShowWeather(true)}
-                className="text-lg text-gray-500 dark:text-gray-400 flex items-center gap-1 px-2 py-1"
+                className="text-lg text-stone-400 dark:text-gray-400 flex items-center gap-1 px-2 py-1 font-semibold"
                 aria-label="Weather detail"
               >
                 <span>{weather.icon}</span>
@@ -124,7 +123,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
           <SleepButton onClick={sleep} size="sm" />
           <button
             onClick={() => setShowSettings(true)}
-            className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center"
+            className="w-10 h-10 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-gray-400 flex items-center justify-center"
             aria-label="Settings"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -134,16 +133,15 @@ export function NavHeader({ activePage }: NavHeaderProps) {
           </button>
         </div>
 
-        {/* Nav row: horizontally scrollable */}
         <nav className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-none">
           {navLinks.map(([label, href, page]) => (
             <Link
               key={page}
               href={href}
-              className={`px-4 py-2.5 rounded-xl text-base font-semibold whitespace-nowrap flex items-center transition-colors ${
+              className={`px-4 py-2.5 rounded-2xl text-base font-bold whitespace-nowrap flex items-center transition-all ${
                 activePage === page
-                  ? "bg-gray-950 dark:bg-white text-white dark:text-gray-950"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-950"
+                  : "bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-gray-300"
               }`}
             >
               {label}
@@ -152,21 +150,21 @@ export function NavHeader({ activePage }: NavHeaderProps) {
         </nav>
       </header>
 
-      {/* ── Weather modal (shared) ── */}
+      {/* ── Weather modal ── */}
       {showWeather && weather && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-6"
           onClick={() => setShowWeather(false)}
         >
           <div
-            className="bg-white dark:bg-gray-900 rounded-2xl p-8 w-full max-w-sm"
+            className="bg-[#FAF9F7] dark:bg-gray-900 rounded-3xl p-8 w-full max-w-sm shadow-xl"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-950 dark:text-white text-2xl font-semibold">Today&apos;s Weather</p>
+              <p className="text-gray-900 dark:text-white text-2xl font-bold">Today&apos;s Weather</p>
               <button
                 onClick={() => setShowWeather(false)}
-                className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="w-10 h-10 rounded-full bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-gray-400 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-gray-700 transition-colors"
                 aria-label="Close"
               >
                 ✕
@@ -174,7 +172,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
             </div>
             <div className="text-center mb-8">
               <p className="text-6xl mb-2">{weather.icon}</p>
-              <p className="text-5xl font-bold text-gray-950 dark:text-white tabular-nums">{weather.current}°F</p>
+              <p className="text-5xl font-extrabold text-gray-900 dark:text-white tabular-nums">{weather.current}°F</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {(
@@ -184,11 +182,11 @@ export function NavHeader({ activePage }: NavHeaderProps) {
                   ["Evening", weather.evening],
                 ] as const
               ).map(([label, period]) => (
-                <div key={label} className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 text-center">
-                  <p className="text-gray-500 text-sm mb-2">{label}</p>
+                <div key={label} className="bg-stone-100 dark:bg-gray-800 rounded-2xl p-4 text-center">
+                  <p className="text-stone-400 text-sm mb-2 font-semibold">{label}</p>
                   <p className="text-2xl mb-1">{period.icon}</p>
-                  <p className="text-gray-950 dark:text-white font-semibold tabular-nums">{period.hi}°</p>
-                  <p className="text-gray-500 tabular-nums">{period.lo}°</p>
+                  <p className="text-gray-900 dark:text-white font-bold tabular-nums">{period.hi}°</p>
+                  <p className="text-stone-400 tabular-nums font-semibold">{period.lo}°</p>
                 </div>
               ))}
             </div>
