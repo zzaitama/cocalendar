@@ -281,9 +281,14 @@ function UpcomingSidebar({ events, now }: { events: CalendarEvent[]; now: Date }
   }
 
   function countdown(e: CalendarEvent) {
-    const diff = Math.round((new Date(e.start).getTime() - now.getTime()) / 60000)
-    if (diff < 60) return `${diff}m`
-    const h = Math.floor(diff / 60), m = diff % 60
+    const diffMins = Math.round((new Date(e.start).getTime() - now.getTime()) / 60000)
+    const diffHours = diffMins / 60
+    if (diffHours >= 23.5) {
+      const days = Math.round(diffHours / 24)
+      return `${days}d`
+    }
+    const h = Math.floor(diffHours)
+    const m = diffMins % 60
     return m > 0 ? `${h}h ${m}m` : `${h}h`
   }
 
@@ -549,5 +554,6 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
     </>
   )
 }
+
 
 
