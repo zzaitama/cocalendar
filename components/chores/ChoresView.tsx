@@ -4,12 +4,13 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import type { ChoreWithCompletion, RewardCard, PersonPoints } from "@/types/chores"
 import type { User } from "@/types"
-import { USERS } from "@/lib/config"
+import { useFamily } from "@/context/FamilyContext"
 import { PersonChoresColumn } from "./PersonChoresColumn"
 import { RewardsSection } from "./RewardsSection"
 import { QuickAddModal } from "./QuickAddModal"
 
 export function ChoresView() {
+  const { members: USERS } = useFamily()
   const [chores, setChores] = useState<ChoreWithCompletion[]>([])
   const [rewards, setRewards] = useState<RewardCard[]>([])
   const [points, setPoints] = useState<Record<string, PersonPoints>>({})
@@ -142,7 +143,7 @@ export function ChoresView() {
           </div>
         ) : (
           <div className="flex gap-6 overflow-x-auto px-4 py-4 min-h-full">
-            {(USERS as User[]).map((user) => (
+            {USERS.map((user) => (
               <PersonChoresColumn
                 key={user.id}
                 user={user}
@@ -185,3 +186,4 @@ export function ChoresView() {
     </div>
   )
 }
+
