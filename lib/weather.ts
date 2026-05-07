@@ -32,9 +32,22 @@ function sliceStats(temps: number[], codes: number[], start: number, end: number
   }
 }
 
+// Default to Fremont, CA if env vars not set
+const DEFAULT_LAT = 37.5485
+const DEFAULT_LON = -121.9886
+
 export async function fetchWeather(): Promise<WeatherData | null> {
   try {
-    const { lat, lon } = getHomeCoords()
+    let lat = DEFAULT_LAT
+    let lon = DEFAULT_LON
+    try {
+      const coords = getHomeCoords()
+      lat = coords.lat
+      lon = coords.lon
+    } catch {
+      // HOME_LAT/HOME_LON not set — use Fremont default
+    }
+
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles&forecast_days=1`
     const res = await fetch(url, { next: { revalidate: 0 } })
     if (!res.ok) return null
