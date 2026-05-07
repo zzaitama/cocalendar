@@ -33,8 +33,8 @@ function sliceStats(temps: number[], codes: number[], start: number, end: number
 }
 
 // Default to Fremont, CA if env vars not set
-const DEFAULT_LAT = 37.5485
-const DEFAULT_LON = -121.9886
+const DEFAULT_LAT = 37.6879
+const DEFAULT_LON = -122.4702
 
 export async function fetchWeather(): Promise<WeatherData | null> {
   try {
@@ -65,3 +65,4 @@ export async function fetchWeather(): Promise<WeatherData | null> {
     return null
   }
 }
+
