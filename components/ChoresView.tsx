@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAvatar } from "@/context/AvatarContext"
-import { useFamily } from "@/context/FamilyContext"
 
 export interface Chore {
   id: string
@@ -118,7 +117,6 @@ function ChoreGroupHeader({ name, color, incompleteCount }: { name: string; colo
 }
 
 export function ChoresView() {
-  const { members: USERS } = useFamily()
   const [chores, setChores] = useState<Chore[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
@@ -199,4 +197,5 @@ export function ChoresView() {
     </div>
   )
 }
+
 
