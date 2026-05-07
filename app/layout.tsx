@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import localFont from "next/font/local"
+import { Nunito } from "next/font/google"
 import dynamic from "next/dynamic"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
@@ -11,10 +11,11 @@ const Screensaver = dynamic(
   { ssr: false }
 )
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
 })
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} antialiased bg-white dark:bg-gray-950 text-gray-950 dark:text-gray-50`}>
+      <body className={`${nunito.variable} font-[family-name:var(--font-nunito)] antialiased bg-[#FAF9F7] dark:bg-gray-950 text-gray-950 dark:text-gray-50`}>
         {/* SAFETY: this script must never interpolate server/user-supplied values — XSS risk */}
         <script
           dangerouslySetInnerHTML={{
