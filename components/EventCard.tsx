@@ -25,6 +25,11 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
   const initial = user?.name?.[0]?.toUpperCase() ?? "?"
   const rgb = hexToRgb(color)
 
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: `rgba(${rgb}, 0.12)`,
+    borderLeft: `4px solid ${color}`,
+  }
+
   return (
     <div
       onClick={onClick}
@@ -32,11 +37,7 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
       className={`flex overflow-hidden rounded-2xl relative transition-all ${
         featured ? "min-h-28" : "min-h-14"
       } ${onClick ? "cursor-pointer hover:brightness-95 active:brightness-90" : ""}`}
-      style={{
-        backgroundColor: `rgba(${rgb}, 0.12)`,
-        borderLeft: `4px solid ${color}`,
-        ("--person-color" as string): color,
-      } as React.CSSProperties}
+      style={cardStyle}
     >
       <div className="flex flex-col justify-center px-3 py-2.5 gap-0.5 min-w-0 flex-1">
         <p
@@ -63,7 +64,6 @@ export function EventCard({ event, featured = false, compact = false, onClick }:
           </p>
         )}
       </div>
-      {/* Avatar dot: emoji if set, else initial */}
       <div
         className="absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 bg-white dark:bg-gray-900 shrink-0"
         style={{ borderColor: color, color }}
