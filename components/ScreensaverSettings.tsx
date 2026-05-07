@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import type { ScreensaverConfig } from "@/types"
+import type { ScreensaverConfig, PhotoMeta } from "@/types"
 
 const STORAGE_KEY = "cocalendar-screensaver"
 const DEFAULT_CONFIG: ScreensaverConfig = {
@@ -24,7 +24,7 @@ interface UploadItem {
 
 export function ScreensaverSettings() {
   const [config, setConfig] = useState<ScreensaverConfig>(DEFAULT_CONFIG)
-  const [photos, setPhotos] = useState<string[]>([])
+  const [photos, setPhotos] = useState<PhotoMeta[]>([])
   const [uploads, setUploads] = useState<UploadItem[]>([])
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -49,9 +49,9 @@ export function ScreensaverSettings() {
     if (res.ok) setPhotos(await res.json())
   }
 
-  async function deletePhoto(filename: string) {
-    await fetch(`/api/screensaver/photos/${encodeURIComponent(filename)}`, { method: "DELETE" })
-    setPhotos(p => p.filter(f => f !== filename))
+  async function deletePhoto(photo: PhotoMeta) {
+    await fetch(`/api/screensaver/photos/${encodeURIComponent(photo.id)}`, { method: "DELETE" })
+    setPhotos(p => p.filter(f => f.id !== photo.id))
   }
 
   async function uploadFiles(files: File[]) {
@@ -74,8 +74,8 @@ export function ScreensaverSettings() {
 
       try {
         const fd = new FormData()
-        fd.append("files", item.file)
-        const res = await fetch("/api/screensaver/photos", { method: "POST", body: fd })
+        fd.append("file", item.file)
+        const res = await fetch("/api/screensaver/photos", { method: "POST", body: fd, credentials: "include" })
         clearInterval(ticker)
         setUploads(prev => prev.map((u, j) =>
           j === idx ? { ...u, progress: 100, done: true, error: !res.ok } : u
@@ -211,21 +211,22 @@ export function ScreensaverSettings() {
 
         {photos.length > 0 && (
           <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-            {photos.map(filename => (
-              <div key={filename} className="relative aspect-square rounded-lg overflow-hidden group">
+            {photos.map(photo => (
+              <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`/screensaver-photos/${filename}`}
+                  src={photo.url}
                   alt=""
                   className="w-full h-full object-cover"
                 />
                 <button
-                  onClick={() => deletePhoto(filename)}
+                  onClick={() => deletePhoto(photo)}
                   className="absolute top-1 right-1 w-7 h-7 bg-black/70 text-white rounded-full flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                   aria-label="Delete photo"
                 >
                   ✕
                 </button>
+                <p className="absolute bottom-0 inset-x-0 text-[9px] text-white/80 bg-black/40 truncate px-1 py-0.5">{photo.uploadedBy}</p>
               </div>
             ))}
           </div>

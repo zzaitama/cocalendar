@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { BouncingCard } from "./BouncingCard"
 import { ClockOverlay } from "./ClockOverlay"
 import { useSleep } from "./SleepProvider"
-import type { ScreensaverConfig } from "@/types"
+import type { ScreensaverConfig, PhotoMeta } from "@/types"
 
 const STORAGE_KEY = "cocalendar-screensaver"
 const DEFAULT_CONFIG: ScreensaverConfig = {
@@ -36,15 +36,15 @@ function isQuietHours(cfg: ScreensaverConfig): boolean {
   return start > end ? cur >= start || cur < end : cur >= start && cur < end
 }
 
-function pickPhoto(photos: string[], prevIdx: number): { photo: string; idx: number } {
+function pickPhoto(photos: PhotoMeta[], prevIdx: number): { photo: string; idx: number } {
   if (photos.length === 0) return { photo: "", idx: -1 }
-  if (photos.length === 1) return { photo: photos[0], idx: 0 }
+  if (photos.length === 1) return { photo: photos[0].url, idx: 0 }
   let idx: number
   do { idx = Math.floor(Math.random() * photos.length) } while (idx === prevIdx)
-  return { photo: photos[idx], idx }
+  return { photo: photos[idx].url, idx }
 }
 
-function makeCard(photos: string[], prevIdx: number, W: number, H: number, cellIdx: number) {
+function makeCard(photos: PhotoMeta[], prevIdx: number, W: number, H: number, cellIdx: number) {
   const portrait = Math.random() > 0.5
   const width = 180 + Math.floor(Math.random() * 141)
   const height = portrait ? Math.round(width * (4 / 3)) : Math.round(width * (3 / 4))
@@ -79,7 +79,7 @@ export function Screensaver({ forceActive = false, onWake }: ScreensaverProps) {
   const isForced = forceActive || sleeping
 
   const [visible, setVisible] = useState(false)
-  const [photos, setPhotos] = useState<string[]>([])
+  const [photos, setPhotos] = useState<PhotoMeta[]>([])
   const [cards, setCards] = useState<ReturnType<typeof makeCard>[]>([])
   const [config, setConfig] = useState<ScreensaverConfig>(DEFAULT_CONFIG)
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -96,7 +96,7 @@ export function Screensaver({ forceActive = false, onWake }: ScreensaverProps) {
   useEffect(() => {
     fetch("/api/screensaver/photos")
       .then(r => r.ok ? r.json() : [])
-      .then((files: string[]) => setPhotos(files))
+      .then((files: PhotoMeta[]) => setPhotos(files))
       .catch(() => setPhotos([]))
   }, [])
 

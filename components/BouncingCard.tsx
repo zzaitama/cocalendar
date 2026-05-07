@@ -119,7 +119,7 @@ export function BouncingCard({ card, cardIndex, speedMultiplier }: BouncingCardP
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={i}
-            src={`/screensaver-photos/${src}`}
+            src={src}
             alt=""
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[600ms] ease-in-out ${activeSlot === i ? "opacity-100" : "opacity-0"}`}
             draggable={false}

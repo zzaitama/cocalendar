@@ -42,3 +42,10 @@ export interface ShoppingStore {
 export interface ShoppingListData {
   stores: ShoppingStore[]
 }
+
+export interface PhotoMeta {
+  id: string
+  url: string
+  uploadedBy: string
+  uploadedAt: string
+}

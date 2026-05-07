@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-
-const PHOTOS_DIR = path.join(process.cwd(), 'public', 'screensaver-photos')
+import cloudinary from '@/lib/cloudinary'
+import { kv } from '@/lib/redis'
+import type { PhotoMeta } from '@/types'
 
 export async function DELETE(
   _request: NextRequest,
@@ -13,18 +12,15 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.accessToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const { filename } = await params
-    const safe = path.basename(filename)
-    const filePath = path.join(PHOTOS_DIR, safe)
+    // filename is the URL-decoded Cloudinary public_id, e.g. "cocalendar-screensaver/abc123"
 
-    if (!filePath.startsWith(PHOTOS_DIR + path.sep)) {
-      return NextResponse.json({ error: 'Invalid filename' }, { status: 400 })
-    }
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: 'File not found' }, { status: 404 })
-    }
+    await cloudinary.uploader.destroy(filename)
 
-    fs.unlinkSync(filePath)
+    const existing = await kv.get<PhotoMeta[]>('screensaver:photos') ?? []
+    await kv.set('screensaver:photos', existing.filter(p => p.id !== filename))
+
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Delete failed' }, { status: 500 })
