@@ -506,7 +506,7 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
             now={now}
             isCurrentWeek={isCurrentWeek}
             onEventClick={e => setModal({ mode: "edit", event: e })}
-            onCreateAt={(_day, _hour) => setModal({ mode: "create" })}
+            onCreateAt={() => setModal({ mode: "create" })}
           />
         </div>
 
@@ -549,4 +549,5 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
     </>
   )
 }
+
 
