@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { SleepProvider } from "@/components/SleepProvider"
 import { AvatarProvider } from "@/context/AvatarContext"
+import { FamilyProvider } from "@/context/FamilyContext"
 
 const Screensaver = dynamic(
   () => import("@/components/Screensaver").then(m => m.Screensaver),
@@ -39,8 +40,10 @@ export default function RootLayout({
         />
         <SleepProvider>
           <AvatarProvider>
-            <ThemeProvider>{children}</ThemeProvider>
-            <Screensaver />
+            <FamilyProvider>
+              <ThemeProvider>{children}</ThemeProvider>
+              <Screensaver />
+            </FamilyProvider>
           </AvatarProvider>
         </SleepProvider>
       </body>
