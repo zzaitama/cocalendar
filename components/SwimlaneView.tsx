@@ -1,8 +1,8 @@
 "use client"
 
 import { useRef, useEffect } from "react"
+import { useFamily } from "@/context/FamilyContext"
 import { useAvatar } from "@/context/AvatarContext"
-import { USERS } from "@/lib/config"
 import { format, differenceInMinutes } from "date-fns"
 import type { CalendarEvent } from "@/types"
 
@@ -10,15 +10,6 @@ const START_HOUR = 6
 const END_HOUR = 23
 const PX_PER_HOUR = 64
 const PX_PER_MIN = PX_PER_HOUR / 60
-
-// Derive lanes directly from USERS config — single source of truth, never drifts
-const LANE_CONFIG = USERS.map(u => ({
-  name: u.name,
-  colorId: u.gcalColorId,
-  color: u.color,
-}))
-
-const LANE_COLOR_IDS = new Set(LANE_CONFIG.map(l => l.colorId))
 
 interface SwimlaneViewProps {
   events: CalendarEvent[]
@@ -53,31 +44,19 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`
 }
 
-function LaneHeaders() {
-  const { getAvatar } = useAvatar()
-  return (
-    <div className="flex shrink-0 border-b border-stone-200 dark:border-gray-800 bg-[#FAF9F7] dark:bg-gray-950">
-      <div className="w-14 shrink-0" />
-      {LANE_CONFIG.map(lane => {
-        const user = USERS.find(u => u.name === lane.name)
-        const emoji = user ? getAvatar(user.id) : ""
-        return (
-          <div
-            key={lane.name}
-            className="flex-1 py-2 text-center text-base font-bold border-l border-stone-200 dark:border-gray-800 truncate px-1 flex flex-col items-center justify-center gap-0.5"
-            style={{ color: lane.color }}
-          >
-            {emoji && <span className="text-lg leading-none">{emoji}</span>}
-            <span>{lane.name}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProps) {
+  const { members } = useFamily()
+  const { getAvatar } = useAvatar()
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Derive lanes from live members — updates when settings change
+  const lanes = members.map(u => ({
+    id: u.id,
+    name: u.name,
+    colorId: u.gcalColorId,
+    color: u.color,
+  }))
+  const laneColorIds = new Set(lanes.map(l => l.colorId))
 
   useEffect(() => {
     if (!scrollRef.current || !isToday) return
@@ -95,8 +74,25 @@ export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProp
 
   return (
     <>
-      <LaneHeaders />
+      {/* Lane headers */}
+      <div className="flex shrink-0 border-b border-stone-200 dark:border-gray-800 bg-[#FAF9F7] dark:bg-gray-950">
+        <div className="w-14 shrink-0" />
+        {lanes.map(lane => {
+          const emoji = getAvatar(lane.id)
+          return (
+            <div
+              key={lane.id}
+              className="flex-1 py-2 text-center text-base font-bold border-l border-stone-200 dark:border-gray-800 truncate px-1 flex flex-col items-center justify-center gap-0.5"
+              style={{ color: lane.color }}
+            >
+              {emoji && <span className="text-lg leading-none">{emoji}</span>}
+              <span>{lane.name}</span>
+            </div>
+          )
+        })}
+      </div>
 
+      {/* Scrollable grid */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto pb-32 bg-[#FAF9F7] dark:bg-gray-950">
         <div className="flex" style={{ height: gridH }}>
 
@@ -117,17 +113,16 @@ export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProp
 
           {/* Lane columns */}
           <div className="flex flex-1 relative">
-            {LANE_CONFIG.map(lane => {
+            {lanes.map(lane => {
               const laneEvents = timed.filter(e => e.colorId === lane.colorId)
-              const sharedEvents = timed.filter(e => !LANE_COLOR_IDS.has(e.colorId))
+              const sharedEvents = timed.filter(e => !laneColorIds.has(e.colorId))
               const rgb = hexToRgb(lane.color)
 
               return (
                 <div
-                  key={lane.name}
+                  key={lane.id}
                   className="flex-1 relative border-l border-stone-200 dark:border-gray-800"
                 >
-                  {/* Hour lines */}
                   {hours.map(h => (
                     <div
                       key={h}
@@ -136,7 +131,6 @@ export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProp
                     />
                   ))}
 
-                  {/* Lane-owned events — pastel style matching the rest of the app */}
                   {laneEvents.map(e => {
                     const top = topPx(e)
                     const height = heightPx(e)
@@ -166,7 +160,6 @@ export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProp
                     )
                   })}
 
-                  {/* Shared / unassigned events */}
                   {sharedEvents.map(e => {
                     const top = topPx(e)
                     const height = heightPx(e)
@@ -192,7 +185,6 @@ export function SwimlaneView({ events, isToday, onEventClick }: SwimlaneViewProp
               )
             })}
 
-            {/* Now line */}
             {showNowLine && (
               <div
                 className="absolute left-0 right-0 flex items-center pointer-events-none z-20"
