@@ -1,16 +1,11 @@
 import type { Metadata, Viewport } from "next"
 import { Nunito } from "next/font/google"
-import dynamic from "next/dynamic"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { SleepProvider } from "@/components/SleepProvider"
 import { AvatarProvider } from "@/context/AvatarContext"
 import { FamilyProvider } from "@/context/FamilyContext"
-
-const Screensaver = dynamic(
-  () => import("@/components/Screensaver").then(m => m.Screensaver),
-  { ssr: false }
-)
+import { ScreensaverLoader } from "@/components/ScreensaverLoader"
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -63,7 +58,7 @@ export default function RootLayout({
           <AvatarProvider>
             <FamilyProvider>
               <ThemeProvider>{children}</ThemeProvider>
-              <Screensaver />
+              <ScreensaverLoader />
             </FamilyProvider>
           </AvatarProvider>
         </SleepProvider>

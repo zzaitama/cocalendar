@@ -1,10 +1,5 @@
 import Link from "next/link"
-import dynamic from "next/dynamic"
-
-const ScreensaverPreview = dynamic(
-  () => import("@/components/Screensaver").then(m => m.Screensaver),
-  { ssr: false }
-)
+import { ScreensaverLoader } from "@/components/ScreensaverLoader"
 
 export default function ScreensaverPage() {
   return (
@@ -17,7 +12,7 @@ export default function ScreensaverPage() {
           ← Back
         </Link>
       </div>
-      <ScreensaverPreview forceActive />
+      <ScreensaverLoader forceActive />
     </>
   )
 }

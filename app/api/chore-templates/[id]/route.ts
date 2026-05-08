@@ -6,7 +6,7 @@ import type { ChoreTemplate, TimeBucket, RecurrenceType, Weekday } from "@/types
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,8 +14,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     const templates = (await kv.get<ChoreTemplate[]>("chore_templates")) ?? []
-    const idx = templates.findIndex((t) => t.id === params.id)
+    const idx = templates.findIndex((t) => t.id === id)
     if (idx === -1) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 })
     }
@@ -45,7 +46,7 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -53,8 +54,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     const templates = (await kv.get<ChoreTemplate[]>("chore_templates")) ?? []
-    const filtered = templates.filter((t) => t.id !== params.id)
+    const filtered = templates.filter((t) => t.id !== id)
     if (filtered.length === templates.length) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 })
     }

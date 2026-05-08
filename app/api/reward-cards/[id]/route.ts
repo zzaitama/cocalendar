@@ -7,7 +7,7 @@ import type { RewardCard } from "@/types/chores"
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,8 +17,9 @@ export async function PATCH(
     const _rl = await checkRateLimit(`rewards:${session.user?.email ?? "shared"}`)
     if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
+    const { id } = await params
     const rewards = (await kv.get<RewardCard[]>("reward_cards")) ?? []
-    const idx = rewards.findIndex((r) => r.id === params.id)
+    const idx = rewards.findIndex((r) => r.id === id)
     if (idx === -1) {
       return NextResponse.json({ error: "Reward not found" }, { status: 404 })
     }
@@ -46,7 +47,7 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -56,8 +57,9 @@ export async function DELETE(
     const _rl = await checkRateLimit(`rewards:${session.user?.email ?? "shared"}`)
     if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
+    const { id } = await params
     const rewards = (await kv.get<RewardCard[]>("reward_cards")) ?? []
-    const filtered = rewards.filter((r) => r.id !== params.id)
+    const filtered = rewards.filter((r) => r.id !== id)
     if (filtered.length === rewards.length) {
       return NextResponse.json({ error: "Reward not found" }, { status: 404 })
     }

@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 export const metadata = {
   title: "Terms of Service — CoCalendar",
   description: "Terms of service for CoCalendar family calendar app",
@@ -11,9 +13,9 @@ export default function TermsPage() {
     <div className="min-h-screen bg-[#FAF9F7] dark:bg-gray-950">
       <div className="max-w-2xl mx-auto px-6 py-16">
 
-        <a href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors mb-10">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors mb-10">
           ← Back to CoCalendar
-        </a>
+        </Link>
 
         <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">Terms of Service</h1>
         <p className="text-sm text-gray-400 mb-10">Last updated: {LAST_UPDATED}</p>

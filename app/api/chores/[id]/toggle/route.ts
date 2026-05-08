@@ -8,7 +8,7 @@ import { todayString } from "@/lib/chores-helpers"
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -19,7 +19,7 @@ export async function PATCH(
     if (!_rl) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
     const { personId, date } = await request.json()
-    const choreId = params.id
+    const { id: choreId } = await params
     const effectiveDate = date ?? todayString()
 
     const templates = (await kv.get<ChoreTemplate[]>("chore_templates")) ?? []
