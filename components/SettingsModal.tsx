@@ -16,9 +16,11 @@ const THEME_OPTIONS: { label: string; value: ThemeOverride }[] = [
   { label: "Dark", value: "dark" },
 ]
 
+type Tab = 'general' | 'screensaver' | 'photos'
+
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const { override, effectiveTheme, setOverride } = useTheme()
-  const [activeTab, setActiveTab] = useState<'general' | 'photos'>('general')
+  const [activeTab, setActiveTab] = useState<Tab>('general')
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -27,6 +29,12 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     document.addEventListener("keydown", handleKey)
     return () => document.removeEventListener("keydown", handleKey)
   }, [onClose])
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'general', label: '⚙️ General' },
+    { id: 'screensaver', label: '🖥️ Screensaver' },
+    { id: 'photos', label: '📷 Photos' },
+  ]
 
   return (
     <div
@@ -49,17 +57,17 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         </div>
 
         <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 -mt-2">
-          {(['general', 'photos'] as const).map(tab => (
+          {tabs.map(tab => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium capitalize rounded-t-md transition-colors ${
-                activeTab === tab
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-2 text-sm font-medium rounded-t-md transition-colors whitespace-nowrap ${
+                activeTab === tab.id
                   ? 'border-b-2 border-gray-900 dark:border-white text-gray-900 dark:text-white'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
-              {tab === 'photos' ? '📷 Photos' : '⚙️ General'}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -98,21 +106,16 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <p>Month: every 60 seconds</p>
               </div>
             </section>
-
-            <ScreensaverSettings />
-
-            <section>
-              <p className="text-xs uppercase tracking-widest text-stone-400 mb-3 font-bold">About</p>
-              <div className="flex flex-col gap-1 text-stone-600 dark:text-gray-300">
-                <p className="font-extrabold text-gray-900 dark:text-white">CoCalendar</p>
-                <p className="font-semibold">Version 1.0.0</p>
-                <p className="text-stone-400 font-semibold">Built for Raspberry Pi kiosk</p>
-              </div>
-            </section>
           </>
         )}
 
-        {activeTab === 'photos' && <ScreensaverPhotos />}
+        {activeTab === 'screensaver' && (
+          <ScreensaverSettings />
+        )}
+
+        {activeTab === 'photos' && (
+          <ScreensaverPhotos />
+        )}
       </div>
     </div>
   )
