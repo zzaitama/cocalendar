@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { addDays, addMonths, format, isSameDay, isSameMonth, isToday, startOfDay, startOfMonth, startOfWeek } from "date-fns"
 import { USERS } from "@/lib/config"
 import { monthRange } from "@/lib/utils"
@@ -28,6 +28,25 @@ export function MonthView({ initialEvents }: MonthViewProps) {
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
   const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
+
+  // Swipe tracking
+  const touchStartX = useRef<number | null>(null)
+  const touchStartY = useRef<number | null>(null)
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null || touchStartY.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
+    if (Math.abs(dx) > 60 && dy < 80) {
+      if (dx < 0) goToNext(); else goToPrev()
+    }
+    touchStartX.current = null
+    touchStartY.current = null
+  }
 
   const fetchNow = useCallback(async (anchor: Date) => {
     try {
@@ -92,7 +111,7 @@ export function MonthView({ initialEvents }: MonthViewProps) {
 
   return (
     <>
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
         {/* Section 1 — Calendar grid (fixed) */}
         <div className="shrink-0 px-4 pt-2 pb-3">
@@ -210,3 +229,4 @@ export function MonthView({ initialEvents }: MonthViewProps) {
     </>
   )
 }
+
