@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { format, differenceInMinutes, startOfDay, endOfDay } from "date-fns"
 import { EventModal } from "@/components/EventModal"
-import { AddButton } from "@/components/AddButton"
-import { CountdownsSection } from "@/components/CountdownsSection"
 import { SwimlaneView } from "@/components/SwimlaneView"
 import { USERS } from "@/lib/config"
 import type { CalendarEvent } from "@/types"
@@ -243,15 +241,7 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
           </div>
         </div>
 
-        {/* Countdowns below the grid */}
-        {isViewingToday && (
-          <div className="shrink-0 px-4 pb-4">
-            <CountdownsSection />
-          </div>
-        )}
       </div>
-
-      <AddButton onClick={() => setModal({ mode: "create" })} />
 
       {modal && (
         <EventModal

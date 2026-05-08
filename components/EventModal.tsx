@@ -47,7 +47,6 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
   )
   const [colorId, setColorId] = useState(event?.colorId ?? members[0]?.gcalColorId ?? "2")
   const [notes, setNotes] = useState(event?.description ?? "")
-  const [addToCountdown, setAddToCountdown] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
@@ -89,15 +88,6 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body,
-        })
-      }
-
-      // Also add to countdowns if toggled
-      if (addToCountdown) {
-        await fetch("/api/countdowns", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: title.trim(), emoji: "🗓️", date }),
         })
       }
 
@@ -196,9 +186,6 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
           rows={3}
           className="w-full bg-stone-100 dark:bg-gray-800 text-gray-900 dark:text-white text-lg rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white placeholder:text-stone-400 dark:placeholder:text-gray-600 font-medium resize-none"
         />
-
-        {/* Add to countdown toggle */}
-        <Toggle label="📅 Add to countdowns" checked={addToCountdown} onChange={setAddToCountdown} />
 
         {/* Actions */}
         <div className="flex gap-3">
