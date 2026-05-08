@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import type { PhotoMeta } from "@/types"
 
 interface WeatherData {
@@ -38,7 +38,6 @@ interface StaticBackgroundProps {
 }
 
 export function StaticBackground({ onDismiss }: StaticBackgroundProps) {
-  const [photos, setPhotos] = useState<PhotoMeta[]>([])
   const [currentPhoto, setCurrentPhoto] = useState<string>("")
   const now = useClock()
   const weather = useWeather()
@@ -47,7 +46,6 @@ export function StaticBackground({ onDismiss }: StaticBackgroundProps) {
     fetch("/api/screensaver/photos")
       .then(r => r.ok ? r.json() : [])
       .then((files: PhotoMeta[]) => {
-        setPhotos(files)
         if (files.length > 0) {
           const idx = Math.floor(Math.random() * files.length)
           setCurrentPhoto(files[idx].url)

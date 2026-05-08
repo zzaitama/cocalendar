@@ -60,12 +60,10 @@ function AgendaView({
   events,
   onEventClick,
   onAddAtTime,
-  targetDate,
 }: {
   events: CalendarEvent[]
   onEventClick: (e: CalendarEvent) => void
   onAddAtTime: () => void
-  targetDate?: string
 }) {
   const allDay = events.filter(e => e.isAllDay)
   const timed = events.filter(e => !e.isAllDay).sort(
@@ -317,7 +315,6 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
             events={events}
             onEventClick={e => setModal({ mode: "edit", event: e })}
             onAddAtTime={() => setModal({ mode: "create", defaultDate: currentDate })}
-            targetDate={currentDate}
           />
         </div>
 

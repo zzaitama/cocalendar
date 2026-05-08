@@ -5,7 +5,6 @@ export const metadata = {
 
 const LAST_UPDATED = "May 7, 2026"
 const CONTACT_EMAIL = "timonsandymei@gmail.com"
-const APP_URL = "https://cocalendar-one.vercel.app"
 
 export default function PrivacyPage() {
   return (
@@ -52,7 +51,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 space-y-1">
               <li>Calendar events are displayed within the app and on the household wall display</li>
               <li>Your Google OAuth refresh token is stored securely in an encrypted Redis database (Upstash) solely to keep the wall display running without requiring repeated logins</li>
-              <li>Photos you upload for the screensaver are stored in Cloudinary under the app owner's account</li>
+              <li>Photos you upload for the screensaver are stored in Cloudinary under the app owner&apos;s account</li>
               <li>Chore and task data is stored in the same encrypted Redis database</li>
             </ul>
           </section>

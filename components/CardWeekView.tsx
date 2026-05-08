@@ -109,7 +109,7 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
     const dx = e.changedTouches[0].clientX - touchStartX.current
     const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
     if (Math.abs(dx) > 60 && dy < 80) {
-      dx < 0 ? goMobileNext() : goMobilePrev()
+      if (dx < 0) { goMobileNext() } else { goMobilePrev() }
     }
     touchStartX.current = null
     touchStartY.current = null
