@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Nunito } from "next/font/google"
 import dynamic from "next/dynamic"
 import "./globals.css"
@@ -20,8 +20,29 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: "Family Calendar",
-  description: "Family wall calendar",
+  title: "CoCalendar",
+  description: "Family calendar",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CoCalendar",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    apple: "/icon-192.png",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#FAF9F7",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 }
 
 export default function RootLayout({
