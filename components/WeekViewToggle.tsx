@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { WeekView } from "@/components/WeekView"
 import { CardWeekView } from "@/components/CardWeekView"
 import type { CalendarEvent } from "@/types"
@@ -13,12 +13,11 @@ interface WeekViewToggleProps {
 type ViewMode = "grid" | "cards"
 
 export function WeekViewToggle({ initialEvents, initialWeekStart }: WeekViewToggleProps) {
-  const [mode, setMode] = useState<ViewMode>("grid")
-
-  useEffect(() => {
-    const saved = localStorage.getItem("week-view-mode") as ViewMode | null
-    if (saved === "grid" || saved === "cards") setMode(saved)
-  }, [])
+  const [mode, setMode] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") return "grid"
+    const saved = localStorage.getItem("week-view-mode")
+    return saved === "cards" ? "cards" : "grid"
+  })
 
   function switchMode(next: ViewMode) {
     setMode(next)
