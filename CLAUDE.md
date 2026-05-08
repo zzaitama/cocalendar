@@ -1,320 +1,219 @@
-# CLAUDE.md — Family Calendar (FamCal)
+# CLAUDE.md — CoCalendar
 
-> This file is the source of truth for every build decision.
-> When in doubt: do the simpler thing. Ship the smaller scope. Read this file first.
-
----
-
-## 1. Project Goal
-
-A wall-mounted family calendar web app running on a Raspberry Pi touchscreen kiosk.
-
-- Always-on display showing today's events at a glance
-- Syncs with a single shared Google Calendar (source of truth)
-- Quick-add from the wall; full edit from phone/desktop
-- Ships as a Vercel-hosted Next.js app
-
-This is a **read-heavy, glanceable display** first. CRUD is secondary.
+> Read this first. Do the simpler thing. Ship the smaller scope.
 
 ---
 
-## 2. V1 Scope (Strict — No Exceptions)
+## What This Is
 
-### INCLUDED
+A private family calendar and household management app for the Mei household.
 
-| Feature | Detail |
+- **Wall kiosk** — 22" Elo touchscreen, portrait, kitchen wall, always-on
+- **Phone** — PWA on iPhone (Safari + Chrome), added to home screen
+- **Desktop** — full browser experience
+
+Hosted on Vercel. Raspberry Pi runs Chromium in kiosk mode pointing at the Vercel URL.
+
+---
+
+## Tech Stack
+
+| Layer | Choice |
 |---|---|
-| Today View | Default screen. Day label, current time, next event highlighted, all-day list |
-| Week View | 7-column Mon–Sun. Stacked event cards. No hourly grid |
-| Navigation | Header tap to toggle Today/Week. Prev/Next arrows |
-| Event cards | Title, time, color-coded person dot/bar |
-| Quick Add (wall) | Modal: Title + Time + Person. Save goes to Google Calendar |
-| Edit event | Tap event → edit modal (same fields as Quick Add) |
-| Delete event | Inside edit modal |
-| Google Calendar sync | Poll every 30–60s. Read + Write |
-| Google OAuth | One-time setup. Single shared family account |
-| Person color config | Static config file: Dad, Mom, Colette, Family |
-| Responsive layout | Works on phone, desktop, and Pi touchscreen |
-
-### EXCLUDED — Hard No for V1
-
-- Notifications / reminders
-- Photos, screensavers, weather widgets
-- Meal planning, chore tracking
-- Voice input
-- AI features
-- Multi-calendar support
-- Per-user login / auth system (one shared Google account only)
-- Drag-to-reschedule
-- Recurrence creation UI (Google Calendar handles recurrence; we display recurring events, not create them)
-- Webhooks / push sync
-- Offline mode
-- Dark/light mode toggle
+| Framework | Next.js (App Router) |
+| Auth | NextAuth.js — Google OAuth |
+| Calendar | Google Calendar API (`googleapis`) |
+| Styling | Tailwind CSS only — no CSS modules, no inline styles |
+| Dates | `date-fns` |
+| Storage | Upstash Redis (`@upstash/redis`) — chores, settings, kiosk refresh token |
+| Photos | Cloudinary — screensaver photo uploads |
+| Weather | Open-Meteo API (no key needed) |
+| Hosting | Vercel |
 
 ---
 
-## 3. Tech Stack (Locked)
+## People & Colors
 
-| Layer | Choice | Reason |
-|---|---|---|
-| Framework | Next.js 14 (App Router) | API routes + SSR in one deploy |
-| Auth | NextAuth.js (Google provider) | Handles OAuth + token refresh out of the box |
-| Google API | `googleapis` npm package | Official SDK |
-| Styling | Tailwind CSS | Already in scaffold |
-| Date handling | `date-fns` | Tiny, tree-shakeable, no moment.js |
-| Hosting | Vercel | Zero config, Next.js native |
-| Pi browser | Chromium in kiosk mode | Standard |
-
-**No additional dependencies without explicit justification.**
-No Redux, Zustand, React Query, Radix, shadcn, Framer Motion, or any other library not listed above.
-
----
-
-## 4. File Structure
-
-```
-family-cal/
-├── app/
-│   ├── layout.tsx              # Root layout, global font, metadata
-│   ├── page.tsx                # Today View (default route)
-│   ├── week/
-│   │   └── page.tsx            # Week View
-│   ├── api/
-│   │   ├── auth/
-│   │   │   └── [...nextauth]/
-│   │   │       └── route.ts    # NextAuth handler
-│   │   └── events/
-│   │       ├── route.ts        # GET /api/events, POST /api/events
-│   │       └── [id]/
-│   │           └── route.ts    # PATCH, DELETE /api/events/[id]
-├── components/
-│   ├── TodayView.tsx           # Today layout component
-│   ├── WeekView.tsx            # Week layout component
-│   ├── EventCard.tsx           # Single event card (shared)
-│   ├── EventModal.tsx          # Create/Edit modal
-│   ├── NavHeader.tsx           # Top nav: Today/Week toggle + date
-│   └── AddButton.tsx           # Floating "+" button
-├── lib/
-│   ├── google-calendar.ts      # All Google Calendar API calls
-│   ├── config.ts               # USERS config (static person/color map)
-│   └── utils.ts                # Date formatting helpers
-├── types/
-│   └── index.ts                # CalendarEvent, User types
-├── .env.local                  # Secrets (never commit)
-└── CLAUDE.md                   # This file
-```
-
-**Rules:**
-- No `/components/ui/` abstraction layer
-- No barrel `index.ts` files
-- Components are flat, not nested by domain
-- One file per component, no co-located test files in V1
-
----
-
-## 5. Data Model
-
-### Users (static config in `lib/config.ts`)
+Defined in `lib/config.ts`. Source of truth for person → color → gcalColorId mapping.
 
 ```ts
-export const USERS = [
-  { id: "dad",     name: "Dad",     color: "#4CAF50", gcalColorId: "2" },
-  { id: "mom",     name: "Mom",     color: "#2196F3", gcalColorId: "1" },
-  { id: "colette", name: "Colette", color: "#FF69B4", gcalColorId: "5" },
-  { id: "family",  name: "Family",  color: "#9C27B0", gcalColorId: "3" },
-]
+{ id: "dad",     name: "Daddy",   color: "#33B679", gcalColorId: "2"  }
+{ id: "mom",     name: "Mommy",   color: "#039BE5", gcalColorId: "7"  }
+{ id: "colette", name: "Colette", color: "#9C27B0", gcalColorId: "3"  }
+{ id: "monti",   name: "Monti",   color: "#F6BF26", gcalColorId: "5"  }
+{ id: "family",  name: "Family",  color: "#00BCD4", gcalColorId: "10" } // iCloud family cal
 ```
 
-### CalendarEvent (internal type)
+Person assignment = Google Calendar event `colorId`. No title prefixes.
+
+---
+
+## Key Types (`types/index.ts`)
 
 ```ts
 type CalendarEvent = {
-  id: string           // Google event ID
+  id: string
   title: string
-  start: string        // ISO datetime or date (all-day)
-  end: string          // ISO datetime or date (all-day)
-  colorId: string      // Google colorId → maps to user
+  start: string        // ISO
+  end: string          // ISO
+  colorId: string
   isAllDay: boolean
+  description?: string
+}
+
+type ScreensaverConfig = {
+  idleTimeout: number
+  clockStyle: "digital" | "analog"
+  mode: "bouncing" | "static"
+  staticPhotoUrl?: string
+  staticFit?: "cover" | "contain"
+  quietHoursEnabled: boolean
+  quietHoursStart: string
+  quietHoursEnd: string
 }
 ```
 
-### Person assignment strategy
-Events are assigned to a person via Google Calendar's event-level `colorId`.
-`colorId` maps 1:1 to a user in the static USERS config.
-No title prefixes. No custom fields.
+---
+
+## Routes & APIs
+
+### Pages
+| Route | What |
+|---|---|
+| `/` | Today view (default) |
+| `/week` | Week view (3-day on mobile, 7-day desktop) |
+| `/month` | Month view |
+| `/list` | List view |
+| `/kiosk` | Wall display — no auth required if `?secret=` present |
+| `/signin` | Landing + Google OAuth |
+| `/privacy` | Privacy policy (public) |
+| `/terms` | Terms of service (public) |
+
+### API Routes
+| Route | What |
+|---|---|
+| `GET/POST /api/events` | Fetch or create calendar events |
+| `PATCH/DELETE /api/events/[id]` | Update or delete event |
+| `GET /api/weather` | Current + forecast from Open-Meteo |
+| `GET/POST /api/chores` | Chore list from Redis |
+| `PATCH /api/chores/[id]` | Toggle chore complete |
+| `GET /api/screensaver/photos` | List Cloudinary photos |
+| `POST /api/screensaver/upload` | Upload photo to Cloudinary |
+| `DELETE /api/screensaver/photos/[id]` | Delete photo |
+| `GET /api/kiosk/data?secret=` | Events + chores, no session needed |
+| `PATCH /api/kiosk/chore/[id]?secret=` | Toggle chore from kiosk |
 
 ---
 
-## 6. API Routes
+## Calendars
 
-### `GET /api/events?start=ISO&end=ISO`
-Fetches events from Google Calendar for the given range.
-Returns: `CalendarEvent[]`
-
-### `POST /api/events`
-Creates a new event.
-Body: `{ title, start, end, colorId }`
-
-### `PATCH /api/events/[id]`
-Updates an existing event.
-Body: `{ title, start, end, colorId }`
-
-### `DELETE /api/events/[id]`
-Deletes an event.
-
-All routes are authenticated via NextAuth session. They proxy directly to Google Calendar — no DB, no caching layer.
+Primary calendar = `process.env.GOOGLE_CALENDAR_ID` (default `"primary"`).  
+Extra calendars (iCloud Family) = `process.env.GOOGLE_EXTRA_CALENDAR_IDS` (comma-separated).  
+Extra calendar events are stamped with `colorId: "10"` (Family/aqua).
 
 ---
 
-## 7. Sync Strategy
+## Kiosk Auth
 
-- Client polls `GET /api/events` every **30 seconds** via `setInterval`
-- No webhooks, no WebSockets
-- On create/edit/delete: immediately re-fetch after mutation (no optimistic UI)
-- Acceptable lag: up to 60 seconds
+The Pi wall display uses `KIOSK_SECRET` instead of a browser session.
 
----
+**Flow:**
+1. Any family member signs in normally → `auth.ts` saves Google refresh token to Redis key `cocalendar:kiosk_refresh_token`
+2. Pi opens `/kiosk?secret=KIOSK_SECRET`
+3. `/api/kiosk/data` validates the secret, fetches a fresh access token from Redis, returns events + chores
+4. Wall runs forever with no human intervention
 
-## 8. UX Principles (Non-Negotiable)
-
-1. **Readable at 10 feet** — minimum 24px body text. Event titles: 28–36px. Time: large.
-2. **Touch targets ≥ 56px** — every tappable element. No hover-only interactions.
-3. **Today View is the default** — never land on week view cold
-4. **Color = person identity** — every event shows its person color immediately
-5. **Quick Add < 10 seconds** — Title field auto-focuses. Time defaults to next hour. One tap per person selector.
-6. **No loading spinners on the wall** — show stale data with a subtle indicator rather than blank screen
-7. **No modals on top of modals** — one modal max, always dismissable via Cancel or backdrop tap
-8. **Empty states are friendly** — "Nothing today — enjoy the day!" not blank whitespace
+**Required env vars for kiosk:** `KIOSK_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 
 ---
 
-## 9. Coding Rules
+## Screensaver
 
-1. **No abstractions unless used 3+ times.** Don't create a `useCalendar` hook for one page.
-2. **Co-locate state with the component that needs it.** Lift only when two siblings need it.
-3. **Fetch in Server Components where possible.** Use Client Components only when interactivity is required.
-4. **No `any` types.** Use the types in `types/index.ts`.
-5. **Error boundaries are optional in V1.** Console.error + user-visible fallback text is fine.
-6. **Tailwind only.** No inline styles. No CSS modules. No styled-components.
-7. **Named exports only.** No default exports except page/layout files (Next.js requires it).
-8. **Keep files under 200 lines.** If a file exceeds this, split it — but only if the split is obvious.
-9. **No comments explaining what code does.** Write code that reads itself. Comments only for *why*.
-10. **Every API route must handle errors** and return a JSON error with a status code.
+Stored in `localStorage` key `cocalendar-screensaver`. Two modes:
+
+- **Bouncing** — photo cards float around screen with clock overlay
+- **Static** — single full-screen photo, clock + date + weather bottom-right
+
+Static mode: user picks a photo from Cloudinary gallery in Settings → Screensaver tab. Fit mode = `cover` (fill) or `contain` (fit).
 
 ---
 
-## 10. Environment Variables
+## Mobile (iPhone)
+
+- PWA — `manifest.json` + apple meta tags → Add to Home Screen
+- Day view = agenda list on mobile, timeline on desktop (`hidden md:block` / `md:hidden`)
+- Week view = 3-day on mobile, 7-day on desktop (same CSS pattern)
+- Swipe left/right for day/week/month navigation
+- Floating `+` button (mobile only, `sm:hidden`)
+- **Never use JS `window.innerWidth` for mobile detection** — always use Tailwind `md:` breakpoints
+
+---
+
+## Settings
+
+Settings modal has 3 tabs: General (theme, family members), Screensaver (mode, timeout, quiet hours), Photos (Cloudinary upload/manage).
+
+Screensaver config persisted in `localStorage`. Theme persisted in `localStorage` key `theme-override`.
+
+---
+
+## Coding Rules
+
+1. No abstractions unless used 3+ times
+2. Tailwind only — no inline styles, no CSS modules
+3. No `any` types
+4. Named exports only (except Next.js page/layout files)
+5. Mobile detection via Tailwind `md:` breakpoints — never `window.innerWidth` in render
+6. Keep files under 200 lines — split if obvious
+7. Every API route returns JSON error + status code on failure
+8. No new dependencies without good reason
+
+---
+
+## Environment Variables
 
 ```bash
-# .env.local
+# Auth
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-NEXTAUTH_SECRET=          # openssl rand -base64 32
-NEXTAUTH_URL=             # http://localhost:3000 locally, Vercel URL in prod
-GOOGLE_CALENDAR_ID=       # usually "primary" or the family calendar email
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+
+# Calendar
+GOOGLE_CALENDAR_ID=primary
+GOOGLE_EXTRA_CALENDAR_IDS=4tq2ngt3nvpb0kshmr0tkeu4elgooamb@import.calendar.google.com
+
+# Kiosk
+KIOSK_SECRET=
+
+# Storage
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+
+# Photos
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# Weather (optional — defaults to Fremont CA)
+HOME_LAT=
+HOME_LON=
 ```
 
 ---
 
-## 11. Definition of Done
+## What's Done (V1)
 
-V1 is DONE when all of the following are true:
-
-- [ ] Pi boots → Chromium launches → app loads automatically
-- [ ] Today View loads in < 2 seconds on Pi
-- [ ] Event titles are readable from 10 feet
-- [ ] Events from Google Calendar appear within 60s of being created
-- [ ] Quick Add from wall creates event in Google Calendar (verified in GCal)
-- [ ] Edit from phone updates event on wall within 60s
-- [ ] Delete works
-- [ ] App runs 24/7 for 48h without intervention
-- [ ] No console errors in normal operation
-- [ ] Deployed to Vercel with a stable URL
-
----
-
-## 12. Build Phases
-
-### Phase 1 — Foundation (Days 1–2)
-- Next.js scaffold (done)
-- Install: `next-auth`, `googleapis`, `date-fns`
-- Google OAuth via NextAuth
-- `GET /api/events` returns real data
-- Hard-coded date range test, logged to console
-
-**Shippable check:** Auth works, events print to console.
-
-### Phase 2 — Today View (Days 3–4)
-- `TodayView.tsx` with real event data
-- `EventCard.tsx` component
-- `NavHeader.tsx` with date display
-- Person color rendering
-- 30s polling loop
-
-**Shippable check:** Wall-mounted Pi shows today's events, updates every 30s.
-
-### Phase 3 — Week View + Navigation (Days 5–6)
-- `WeekView.tsx` 7-column layout
-- Header tap to toggle views
-- Prev/Next navigation (arrows)
-
-**Shippable check:** Full read-only kiosk experience.
-
-### Phase 4 — CRUD (Days 7–9)
-- `EventModal.tsx` (create + edit)
-- `AddButton.tsx` floating FAB
-- `POST /api/events`, `PATCH /api/events/[id]`, `DELETE /api/events/[id]`
-- Tap event card → open edit modal
-
-**Shippable check:** Full create/edit/delete cycle works, syncs to Google Calendar.
-
-### Phase 5 — Polish + Pi (Days 10–12)
-- Responsive layout (mobile, desktop, 1024px Pi screen)
-- Large typography pass
-- Touch target audit (≥ 56px)
-- Pi kiosk setup instructions in README
-- Stale data indicator
-
-**Shippable check:** Looks good on all three form factors.
-
-### Phase 6 — Ship (Days 13–14)
-- Vercel deploy
-- End-to-end smoke test on Pi
-- README with setup instructions
-
----
-
-## 13. What NOT to Build (Ever in V1)
-
-If a PR or prompt asks for any of the following, the answer is NO:
-
-- A database (Postgres, SQLite, Redis, anything)
-- A caching layer
-- A separate backend service
-- Websockets or webhooks
-- User accounts beyond the single shared Google account
-- A component library or design system
-- Global state management (Redux, Zustand, Jotai)
-- Tests (nice to have, not blocking V1)
-- Storybook
-- Drag and drop
-- Animations beyond CSS transitions
-- A native mobile app
-- Push notifications
-- Any AI feature
-
----
-
-## 14. Key Risks & Mitigations
-
-| Risk | Mitigation |
-|---|---|
-| Google OAuth token expires on Pi (long-lived session) | NextAuth auto-refreshes tokens via refresh_token grant. Verify refresh_token is stored in session. |
-| Next.js bundle too heavy for Pi | Minimize client JS. Keep polling logic simple. No large libraries. |
-| Event-level colorId write not supported | Test early in Phase 1. Fallback: title prefix `[Dad]` if colorId fails. |
-| Touch targets too small on Pi screen | Explicit min-h-14 (56px) on all interactive elements. Test physically. |
-| Pi Chromium crashes | systemd `Restart=always` on the kiosk service. Daily 3am reboot via cron. |
-
----
-
-*Last updated: project kickoff. Update this file if scope changes — do not silently drift.*
+- Google Calendar sync + iCloud Family calendar overlay
+- Day / Week / Month / List views
+- Swimlane view by person
+- Event CRUD
+- Chores with weekly reset
+- Kiosk view (portrait, 22" Elo) — clock, weather, Next Up, events, chores
+- Kiosk secret auth — no session expiry on Pi
+- Screensaver — bouncing photos + static display with clock/weather
+- PWA — installable on iPhone
+- Mobile agenda view, 3-day week, swipe navigation
+- Dark mode (auto by time of day, overridable)
+- Photo upload to Cloudinary
+- Privacy policy + terms at `/privacy` and `/terms`
