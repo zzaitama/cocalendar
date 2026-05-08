@@ -12,5 +12,5 @@ export const USERS: User[] = [
   { id: "mom",     name: "Mommy",   color: "#039BE5", gcalColorId: "7"  }, // Peacock = blue
   { id: "colette", name: "Colette", color: "#9C27B0", gcalColorId: "3"  }, // Grape = purple
   { id: "monti",   name: "Monti",   color: "#F6BF26", gcalColorId: "5"  }, // Banana = yellow
-  { id: "family",  name: "Family",  color: "#D50000", gcalColorId: "11" }, // Tomato = red
+  { id: "family",  name: "Family",  color: "#00BCD4", gcalColorId: "10" }, // Aqua/Cyan
 ]
