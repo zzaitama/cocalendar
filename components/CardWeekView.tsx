@@ -26,7 +26,7 @@ function hexToRgb(hex: string): string {
 export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewProps) {
   const { members } = useFamily()
   const { getAvatar } = useAvatar()
-  const [weekStart, setWeekStart] = useState(() => startOfDay(new Date(initialWeekStart)))
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(startOfDay(new Date(initialWeekStart)), { weekStartsOn: 1 }))
   // Mobile anchor: center day of the 3-day view
   const [anchorDay, setAnchorDay] = useState(() => startOfDay(new Date()))
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
@@ -67,8 +67,8 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
   const mobileDays = [addDays(anchorDay, -1), anchorDay, addDays(anchorDay, 1)]
 
   // Desktop nav
-  const goDesktopPrev = () => { const p = addDays(weekStart, -7); setWeekStart(p); fetchForRange(p) }
-  const goDesktopNext = () => { const n = addDays(weekStart, 7); setWeekStart(n); fetchForRange(n) }
+  const goDesktopPrev = () => { const p = startOfWeek(addDays(weekStart, -7), { weekStartsOn: 1 }); setWeekStart(p); fetchForRange(p) }
+  const goDesktopNext = () => { const n = startOfWeek(addDays(weekStart, 7), { weekStartsOn: 1 }); setWeekStart(n); fetchForRange(n) }
   const goDesktopToday = () => {
     const t = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
     setWeekStart(t); fetchForRange(t)

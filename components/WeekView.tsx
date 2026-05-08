@@ -434,7 +434,7 @@ function MobileWeekGrid({
 
 // ── Main WeekView ─────────────────────────────────────────────
 export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
-  const [weekStart, setWeekStart] = useState(() => startOfDay(new Date(initialWeekStart)))
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(startOfDay(new Date(initialWeekStart)), { weekStartsOn: 1 }))
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
   const [tick, setTick] = useState<number>(Date.now())
@@ -473,8 +473,8 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
 
   const filteredEvents = selectedPeople.length === 0 ? events : events.filter(e => selectedPeople.includes(e.colorId))
 
-  const goToPrev = () => { const p = addDays(weekStart, -7); setWeekStart(p); fetchNow(p) }
-  const goToNext = () => { const n = addDays(weekStart, 7); setWeekStart(n); fetchNow(n) }
+  const goToPrev = () => { const p = startOfWeek(addDays(weekStart, -7), { weekStartsOn: 1 }); setWeekStart(p); fetchNow(p) }
+  const goToNext = () => { const n = startOfWeek(addDays(weekStart, 7), { weekStartsOn: 1 }); setWeekStart(n); fetchNow(n) }
   const goToThisWeek = () => {
     const t = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
     setWeekStart(t); fetchNow(t); setSelectedDay(new Date())
