@@ -23,6 +23,8 @@ export interface ScreensaverConfig {
   quietHoursEnabled: boolean
   quietHoursStart: string
   quietHoursEnd: string
+  staticPhotoUrl?: string
+  staticFit?: "cover" | "contain"
 }
 
 export interface ShoppingItem {

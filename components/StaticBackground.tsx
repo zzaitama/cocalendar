@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import type { PhotoMeta } from "@/types"
 
+const STORAGE_KEY = "cocalendar-screensaver"
+
 interface WeatherData {
   current: number
   icon: string
@@ -39,10 +41,30 @@ interface StaticBackgroundProps {
 
 export function StaticBackground({ onDismiss }: StaticBackgroundProps) {
   const [currentPhoto, setCurrentPhoto] = useState<string>("")
+  const [objectFit, setObjectFit] = useState<"cover" | "contain">("cover")
   const now = useClock()
   const weather = useWeather()
 
   useEffect(() => {
+    let pinnedUrl: string | undefined
+    let fit: "cover" | "contain" = "cover"
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const cfg = JSON.parse(raw)
+        if (cfg.staticFit) fit = cfg.staticFit
+        if (cfg.staticPhotoUrl) pinnedUrl = cfg.staticPhotoUrl
+      }
+    } catch {}
+
+    setObjectFit(fit)
+
+    if (pinnedUrl) {
+      setCurrentPhoto(pinnedUrl)
+      return
+    }
+
     fetch("/api/screensaver/photos")
       .then(r => r.ok ? r.json() : [])
       .then((files: PhotoMeta[]) => {
@@ -67,19 +89,17 @@ export function StaticBackground({ onDismiss }: StaticBackgroundProps) {
       onClick={onDismiss}
       onTouchStart={onDismiss}
     >
-      {/* Background photo */}
       {currentPhoto ? (
         <img
           src={currentPhoto}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${objectFit === "contain" ? "object-contain" : "object-cover"}`}
           draggable={false}
         />
       ) : (
         <div className="absolute inset-0 bg-gray-900" />
       )}
 
-      {/* Subtle dark vignette so clock is readable */}
       <div
         className="absolute inset-0"
         style={{
@@ -87,7 +107,6 @@ export function StaticBackground({ onDismiss }: StaticBackgroundProps) {
         }}
       />
 
-      {/* Clock — bottom right */}
       <div className="absolute bottom-8 right-8 flex flex-col items-end gap-1 pointer-events-none select-none">
         <div className="text-white font-thin leading-none drop-shadow-lg" style={{ fontSize: 72 }}>
           {displayHour}:{minutes}
