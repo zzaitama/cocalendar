@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { BouncingCard } from "./BouncingCard"
 import { ClockOverlay } from "./ClockOverlay"
+import { StaticBackground } from "./StaticBackground"
 import { useSleep } from "./SleepProvider"
 import type { ScreensaverConfig, PhotoMeta } from "@/types"
 
@@ -10,6 +11,7 @@ const STORAGE_KEY = "cocalendar-screensaver"
 const DEFAULT_CONFIG: ScreensaverConfig = {
   idleTimeout: 5,
   clockStyle: "digital",
+  mode: "bouncing",
   quietHoursEnabled: false,
   quietHoursStart: "22:00",
   quietHoursEnd: "07:00",
@@ -140,7 +142,7 @@ export function Screensaver({ forceActive = false, onWake }: ScreensaverProps) {
   }, [isForced, visible, show, hide, resetIdle])
 
   useEffect(() => {
-    if (!visible || photos.length === 0) return
+    if (!visible || photos.length === 0 || config.mode === "static") return
     cycleTimer.current = setInterval(() => {
       setCards(prev => prev.map(card => {
         const { photo, idx } = pickPhoto(photos, card.photoIdx)
@@ -148,10 +150,16 @@ export function Screensaver({ forceActive = false, onWake }: ScreensaverProps) {
       }))
     }, CYCLE_MS)
     return () => { if (cycleTimer.current) clearInterval(cycleTimer.current) }
-  }, [visible, photos])
+  }, [visible, photos, config.mode])
 
   if (!visible) return null
 
+  // Static mode — full screen photo + clock
+  if (config.mode === "static") {
+    return <StaticBackground onDismiss={handleDismiss} />
+  }
+
+  // Bouncing mode
   const quiet = isQuietHours(config)
   const speedMultiplier = quiet ? 0.4 : 1
 
