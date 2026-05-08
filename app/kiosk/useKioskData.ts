@@ -6,7 +6,7 @@ import type { CalendarEvent } from '@/types'
 export type Chore = {
   id: string
   title: string
-  assignee: 'Dad' | 'Mom' | 'Colette' | 'Unassigned'
+  assignee: 'Daddy' | 'Mommy' | 'Colette' | 'Monti' | 'Unassigned'
   completedAt: string | null
   completedWeek: number | null
 }
@@ -20,6 +20,11 @@ export type KioskData = {
   toggleChore: (id: string, completed: boolean) => Promise<void>
 }
 
+function getKioskSecret(): string | null {
+  if (typeof window === 'undefined') return null
+  return new URLSearchParams(window.location.search).get('secret')
+}
+
 export function useKioskData(): KioskData {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [chores, setChores] = useState<Chore[]>([])
@@ -27,30 +32,41 @@ export function useKioskData(): KioskData {
   const [lastFetched, setLastFetched] = useState<Date | null>(null)
 
   const fetchAll = useCallback(async () => {
+    const secret = getKioskSecret()
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
     const todayEnd = new Date()
     todayEnd.setHours(23, 59, 59, 999)
 
     try {
-      const [evRes, chRes] = await Promise.all([
-        fetch(`/api/events?start=${todayStart.toISOString()}&end=${todayEnd.toISOString()}`),
-        fetch('/api/chores'),
-      ])
+      if (secret) {
+        // ── Secret mode: single authenticated endpoint, no session needed ──
+        const res = await fetch(`/api/kiosk/data?secret=${encodeURIComponent(secret)}`)
+        if (res.ok) {
+          const data = await res.json() as { events: CalendarEvent[]; chores: Chore[] }
+          setEvents(Array.isArray(data.events) ? data.events : [])
+          setChores(Array.isArray(data.chores) ? data.chores : [])
+          setLastFetched(new Date())
+        }
+      } else {
+        // ── Session mode: normal user-session API routes ──
+        const [evRes, chRes] = await Promise.all([
+          fetch(`/api/events?start=${todayStart.toISOString()}&end=${todayEnd.toISOString()}`),
+          fetch('/api/chores'),
+        ])
 
-      if (evRes.ok) {
-        const data: unknown = await evRes.json()
-        setEvents(Array.isArray(data) ? (data as CalendarEvent[]) : [])
+        if (evRes.ok) {
+          const data: unknown = await evRes.json()
+          setEvents(Array.isArray(data) ? (data as CalendarEvent[]) : [])
+        }
+        if (chRes.ok) {
+          const data: unknown = await chRes.json()
+          setChores(Array.isArray(data) ? (data as Chore[]) : [])
+        }
+        setLastFetched(new Date())
       }
-
-      if (chRes.ok) {
-        const data: unknown = await chRes.json()
-        setChores(Array.isArray(data) ? (data as Chore[]) : [])
-      }
-
-      setLastFetched(new Date())
     } catch {
-      // Keep stale data; stale indicator will appear after 5 min
+      // Keep stale data; stale indicator appears after 5 min
     }
   }, [])
 
@@ -67,7 +83,7 @@ export function useKioskData(): KioskData {
     return () => clearInterval(poll)
   }, [fetchAll])
 
-  // 30-min burn-in pixel shift — imperceptible, prevents static OLED/LCD burn
+  // 30-min burn-in pixel shift
   useEffect(() => {
     const shift = setInterval(() => {
       const x = Math.floor(Math.random() * 5) - 2
@@ -78,7 +94,6 @@ export function useKioskData(): KioskData {
   }, [])
 
   const toggleChore = useCallback(async (id: string, completed: boolean) => {
-    // Optimistic update — reconciled on next 60s poll if this fails
     setChores(prev =>
       prev.map(c =>
         c.id === id
@@ -87,13 +102,17 @@ export function useKioskData(): KioskData {
       )
     )
     try {
-      await fetch(`/api/chores/${id}`, {
+      const secret = getKioskSecret()
+      const url = secret
+        ? `/api/kiosk/chore/${id}?secret=${encodeURIComponent(secret)}`
+        : `/api/chores/${id}`
+      await fetch(url, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed }),
       })
     } catch {
-      // Silent — next poll will reconcile
+      // Silent — next poll reconciles
     }
   }, [])
 
