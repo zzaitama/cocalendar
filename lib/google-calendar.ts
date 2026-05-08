@@ -41,6 +41,8 @@ export async function getEvents(
   const calendar = getClient(accessToken)
   const calendarIds = [PRIMARY_CALENDAR_ID, ...EXTRA_CALENDAR_IDS]
 
+  const isExtra = (id: string) => id !== PRIMARY_CALENDAR_ID
+
   const results = await Promise.all(
     calendarIds.map(calendarId =>
       calendar.events.list({
@@ -49,7 +51,11 @@ export async function getEvents(
         timeMax: end,
         singleEvents: true,
         orderBy: "startTime",
-      }).then(res => res.data.items ?? [])
+      }).then(res => (res.data.items ?? []).map(item => ({
+          ...item,
+          // Stamp extra calendar events so they get the Family color
+          colorId: isExtra(calendarId) ? "10" : (item.colorId ?? undefined),
+        })))
        .catch(() => []) // if one calendar fails, don't break everything
     )
   )
@@ -108,3 +114,4 @@ export async function deleteEvent(accessToken: string, id: string): Promise<void
   const calendar = getClient(accessToken)
   await calendar.events.delete({ calendarId: PRIMARY_CALENDAR_ID, eventId: id })
 }
+
