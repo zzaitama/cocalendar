@@ -4,7 +4,7 @@ export const config = {
   matcher: [
     // Protect all API routes except auth and kiosk data endpoint
     "/api/((?!auth|kiosk).*)",
-    // Protect app pages — /kiosk is intentionally excluded (uses KIOSK_SECRET instead)
+    // Protect app pages — /kiosk, /privacy, /terms are intentionally excluded
     "/",
     "/week",
     "/month",
