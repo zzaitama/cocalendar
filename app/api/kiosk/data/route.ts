@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getEvents } from "@/lib/google-calendar"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 import { startOfDay, endOfDay } from "date-fns"
 
 // This endpoint authenticates via KIOSK_SECRET env var so the Pi wall
@@ -73,6 +74,13 @@ export async function GET(request: NextRequest) {
   if (!kioskSecret) {
     return NextResponse.json({ error: "KIOSK_SECRET not configured on server" }, { status: 503 })
   }
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown"
+  const allowed = await checkRateLimit(`kiosk:${ip}`, 5, 60)
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
   if (!secret || secret !== kioskSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }

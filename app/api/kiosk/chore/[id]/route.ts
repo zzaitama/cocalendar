@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { kv } from "@/lib/redis"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 interface Chore {
   id: string
@@ -24,7 +25,17 @@ export async function PATCH(
   const secret = request.nextUrl.searchParams.get("secret")
   const kioskSecret = process.env.KIOSK_SECRET
 
-  if (!kioskSecret || !secret || secret !== kioskSecret) {
+  if (!kioskSecret) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown"
+  const allowed = await checkRateLimit(`kiosk:${ip}`, 5, 60)
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
+  if (!secret || secret !== kioskSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
