@@ -27,7 +27,7 @@ function mapItem(item: {
     title: item.summary ?? "(No title)",
     start: item.start?.dateTime ?? item.start?.date ?? "",
     end: item.end?.dateTime ?? item.end?.date ?? "",
-    colorId: item.colorId ?? "0",
+    colorId: item.colorId ?? "",
     isAllDay,
     description: item.description ?? undefined,
   }

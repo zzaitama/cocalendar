@@ -22,7 +22,8 @@ function hexToRgb(hex: string): string {
 export function EventCard({ event, featured = false, compact = false, onClick }: EventCardProps) {
   const { members } = useFamily()
   const user = members.find((u) => u.gcalColorId === event.colorId)
-  const color = user?.color ?? "#64748b"
+  const familyMember = members.find(u => u.id === "family")
+  const color = user?.color ?? familyMember?.color ?? "#64748b"
   const { getAvatar } = useAvatar()
   const emoji = user ? getAvatar(user.id) : ""
   const initial = user?.name?.[0]?.toUpperCase() ?? "?"

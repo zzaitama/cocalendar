@@ -97,6 +97,8 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
       .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
   }
 
+  const familyMember = members.find(u => u.id === "family")
+
   function userForEvent(e: CalendarEvent) {
     return members.find(u => u.gcalColorId === e.colorId)
   }
@@ -160,7 +162,7 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
           <div className="px-1.5 pb-1.5 flex flex-col gap-1 shrink-0">
             {allDayEvents.map(e => {
               const user = userForEvent(e)
-              const color = user?.color ?? "#64748b"
+              const color = user?.color ?? familyMember?.color ?? "#64748b"
               return (
                 <button key={e.id} onClick={() => setModal({ mode: "edit", event: e })}
                   className="w-full text-left rounded-xl px-2 py-1 text-xs font-bold truncate text-white"
