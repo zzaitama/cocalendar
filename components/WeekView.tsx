@@ -462,6 +462,9 @@ export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
     return () => clearInterval(i)
   }, [weekStart, fetchNow])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchNow(weekStart) }, [])
+
   useEffect(() => {
     const i = setInterval(() => setTick(Date.now()), 15_000)
     return () => clearInterval(i)

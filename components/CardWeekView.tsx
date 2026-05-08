@@ -54,6 +54,9 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
     return () => clearInterval(i)
   }, [weekStart, fetchForRange])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchForRange(weekStart) }, [])
+
   useEffect(() => {
     const i = setInterval(() => setTick(Date.now()), 15_000)
     return () => clearInterval(i)
