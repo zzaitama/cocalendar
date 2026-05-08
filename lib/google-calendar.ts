@@ -1,7 +1,11 @@
 import { google } from "googleapis"
 import type { CalendarEvent } from "@/types"
 
-const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || "primary"
+const PRIMARY_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || "primary"
+const EXTRA_CALENDAR_IDS: string[] = (process.env.GOOGLE_EXTRA_CALENDAR_IDS || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean)
 
 function getClient(accessToken: string) {
   const auth = new google.auth.OAuth2()
@@ -35,14 +39,31 @@ export async function getEvents(
   end: string
 ): Promise<CalendarEvent[]> {
   const calendar = getClient(accessToken)
-  const res = await calendar.events.list({
-    calendarId: CALENDAR_ID,
-    timeMin: start,
-    timeMax: end,
-    singleEvents: true,
-    orderBy: "startTime",
-  })
-  return (res.data.items ?? []).map(mapItem)
+  const calendarIds = [PRIMARY_CALENDAR_ID, ...EXTRA_CALENDAR_IDS]
+
+  const results = await Promise.all(
+    calendarIds.map(calendarId =>
+      calendar.events.list({
+        calendarId,
+        timeMin: start,
+        timeMax: end,
+        singleEvents: true,
+        orderBy: "startTime",
+      }).then(res => res.data.items ?? [])
+       .catch(() => []) // if one calendar fails, don't break everything
+    )
+  )
+
+  const allEvents = results.flat().map(mapItem)
+  // deduplicate by id, sort by start
+  const seen = new Set<string>()
+  return allEvents
+    .filter(e => {
+      if (!e.id || seen.has(e.id)) return false
+      seen.add(e.id)
+      return true
+    })
+    .sort((a, b) => a.start.localeCompare(b.start))
 }
 
 export async function createEvent(
@@ -51,7 +72,7 @@ export async function createEvent(
 ): Promise<CalendarEvent> {
   const calendar = getClient(accessToken)
   const res = await calendar.events.insert({
-    calendarId: CALENDAR_ID,
+    calendarId: PRIMARY_CALENDAR_ID,
     requestBody: {
       summary: data.title,
       colorId: data.colorId,
@@ -70,7 +91,7 @@ export async function updateEvent(
 ): Promise<CalendarEvent> {
   const calendar = getClient(accessToken)
   const res = await calendar.events.patch({
-    calendarId: CALENDAR_ID,
+    calendarId: PRIMARY_CALENDAR_ID,
     eventId: id,
     requestBody: {
       summary: data.title,
@@ -85,5 +106,5 @@ export async function updateEvent(
 
 export async function deleteEvent(accessToken: string, id: string): Promise<void> {
   const calendar = getClient(accessToken)
-  await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: id })
+  await calendar.events.delete({ calendarId: PRIMARY_CALENDAR_ID, eventId: id })
 }
