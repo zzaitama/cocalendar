@@ -242,7 +242,7 @@ export default function KioskClient() {
 
   const nextEvent = getNextEvent(events, now)
   const displayEvents = getDisplayEvents(events, now)
-  const sortedChores = sortChores(chores)
+  const sortedChores = sortChores(chores.filter(c => c.assignee !== 'Unassigned'))
   const doneCount = chores.filter(c => c.completedAt !== null).length
 
   return (

@@ -1,7 +1,10 @@
+"use client"
+
 import type { ChoreWithCompletion, TimeBucket } from "@/types/chores"
 import type { User } from "@/types"
 import { TimeBucketSection } from "./TimeBucketSection"
 import { PointsSummary } from "./PointsSummary"
+import { useAvatar } from "@/context/AvatarContext"
 
 const BUCKETS: TimeBucket[] = ["morning", "afternoon", "evening", "anytime"]
 
@@ -12,6 +15,9 @@ interface PersonChoresColumnProps {
 }
 
 export function PersonChoresColumn({ user, chores, onToggle }: PersonChoresColumnProps) {
+  const { getAvatar } = useAvatar()
+  const avatarEmoji = getAvatar(user.id) || user.name[0].toUpperCase()
+
   const earnedToday = chores.reduce(
     (sum, c) => sum + (c.completion?.isCompleted ? c.points : 0),
     0
@@ -19,16 +25,16 @@ export function PersonChoresColumn({ user, chores, onToggle }: PersonChoresColum
   const totalToday = chores.reduce((sum, c) => sum + c.points, 0)
 
   return (
-    <div className="flex-shrink-0 w-72 flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-          style={{ backgroundColor: user.color }}
+          className="w-14 h-14 rounded-full flex items-center justify-center text-3xl shrink-0 border-[3px]"
+          style={{ borderColor: user.color, backgroundColor: user.color + "22" }}
         >
-          {user.name.charAt(0)}
+          {avatarEmoji}
         </div>
         <div>
-          <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{user.name}</p>
+          <p className="text-base font-semibold text-gray-900 dark:text-gray-100">{user.name}</p>
           <PointsSummary earned={earnedToday} total={totalToday} />
         </div>
       </div>

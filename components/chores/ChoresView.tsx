@@ -142,7 +142,7 @@ export function ChoresView() {
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="flex gap-6 overflow-x-auto px-4 py-4 min-h-full">
+          <div className="grid px-4 py-4 min-h-full gap-4" style={{ gridTemplateColumns: `repeat(${USERS.length}, 1fr)` }}>
             {USERS.map((user) => (
               <PersonChoresColumn
                 key={user.id}
@@ -151,12 +151,6 @@ export function ChoresView() {
                 onToggle={handleToggle}
               />
             ))}
-            <PersonChoresColumn
-              key="unassigned"
-              user={{ id: "unassigned", name: "Anyone", color: "#6B7280", gcalColorId: "" }}
-              chores={chores.filter((c) => c.personId === null)}
-              onToggle={handleToggle}
-            />
           </div>
         )}
 
