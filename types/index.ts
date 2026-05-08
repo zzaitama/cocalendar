@@ -19,6 +19,7 @@ export interface User {
 export interface ScreensaverConfig {
   idleTimeout: number
   clockStyle: "digital" | "analog"
+  mode: "bouncing" | "static"
   quietHoursEnabled: boolean
   quietHoursStart: string
   quietHoursEnd: string
@@ -49,3 +50,4 @@ export interface PhotoMeta {
   uploadedBy: string
   uploadedAt: string
 }
+
