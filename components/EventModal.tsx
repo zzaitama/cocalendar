@@ -10,7 +10,7 @@ interface EventModalProps {
   event?: CalendarEvent
   defaultDate?: string
   onClose: () => void
-  onSaved: () => void
+  onSaved: (updated?: CalendarEvent) => void
 }
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
@@ -83,15 +83,24 @@ export function EventModal({ mode, event, defaultDate, onClose, onSaved }: Event
           headers: { "Content-Type": "application/json" },
           body,
         })
+        onSaved()
       } else {
         await fetch(`/api/events/${event!.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body,
         })
+        onSaved({
+          id: event!.id,
+          title: title.trim(),
+          start,
+          end,
+          colorId,
+          isAllDay,
+          description: notes.trim() || undefined,
+        })
       }
 
-      onSaved()
       onClose()
     } catch {
       setSaving(false)

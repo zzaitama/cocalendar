@@ -36,6 +36,7 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
 
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
+  const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchForRange = useCallback(async (anchor: Date) => {
     try {
@@ -98,6 +99,16 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
 
   function userForEvent(e: CalendarEvent) {
     return members.find(u => u.gcalColorId === e.colorId)
+  }
+
+  function handleSaved(updated?: CalendarEvent) {
+    if (updated) {
+      setEvents(prev => prev.map(e => e.id === updated.id ? updated : e))
+      if (refetchTimer.current) clearTimeout(refetchTimer.current)
+      refetchTimer.current = setTimeout(() => fetchForRange(weekStart), 2000)
+    } else {
+      fetchForRange(weekStart)
+    }
   }
 
   function handleTouchStart(e: React.TouchEvent) {
@@ -263,7 +274,7 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
           event={modal.mode === "edit" ? modal.event : undefined}
           defaultDate={modal.mode === "create" ? modal.defaultDate : undefined}
           onClose={() => setModal(null)}
-          onSaved={() => fetchForRange(weekStart)}
+          onSaved={handleSaved}
         />
       )}
     </>

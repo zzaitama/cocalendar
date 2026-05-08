@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt"
 
 const PROTECTED_PAGES = ["/", "/week", "/month", "/list", "/screensaver", "/chores"]
 const PROTECTED_API_PREFIX = "/api/"
-const UNPROTECTED_API_PREFIXES = ["/api/auth/", "/api/kiosk/"]
+const UNPROTECTED_API_PREFIXES = ["/api/auth/", "/api/kiosk/", "/api/screensaver/"]
 
 function isProtectedRoute(pathname: string): boolean {
   if (pathname.startsWith(PROTECTED_API_PREFIX)) {

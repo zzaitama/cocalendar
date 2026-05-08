@@ -50,7 +50,7 @@ export function ScreensaverPhotos() {
       try {
         const fd = new FormData()
         fd.append("file", item.file)
-        const res = await fetch("/api/screensaver/photos", { method: "POST", body: fd, credentials: "include" })
+        const res = await fetch("/api/screensaver/photos", { method: "POST", body: fd, credentials: "include", headers: { "x-kiosk-secret": process.env.NEXT_PUBLIC_KIOSK_SECRET ?? "" } })
         clearInterval(ticker)
         setUploads(prev => prev.map((u, j) =>
           j === idx ? { ...u, progress: 100, done: true, error: !res.ok } : u
