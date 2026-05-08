@@ -19,6 +19,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com",
               "connect-src 'self' https://api.open-meteo.com https://*.upstash.io",
+              "manifest-src 'self'",
               "frame-ancestors 'none'",
             ].join("; "),
           },
