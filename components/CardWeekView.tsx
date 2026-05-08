@@ -27,26 +27,17 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
   const { members } = useFamily()
   const { getAvatar } = useAvatar()
   const [weekStart, setWeekStart] = useState(() => startOfDay(new Date(initialWeekStart)))
+  // Mobile anchor: center day of the 3-day view
+  const [anchorDay, setAnchorDay] = useState(() => startOfDay(new Date()))
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
   const [lastFetchedAt, setLastFetchedAt] = useState(Date.now())
   const [tick, setTick] = useState(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
-  // Mobile: anchor day (center of 3-day view)
-  const [anchorDay, setAnchorDay] = useState(() => startOfDay(new Date()))
 
-  // Swipe tracking
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener("resize", check)
-    return () => window.removeEventListener("resize", check)
-  }, [])
-
-  const fetchNow = useCallback(async (anchor: Date) => {
+  const fetchForRange = useCallback(async (anchor: Date) => {
     try {
       const { start, end } = weekRange(anchor)
       const res = await fetch(`/api/events?start=${start}&end=${end}`)
@@ -58,9 +49,9 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
   }, [])
 
   useEffect(() => {
-    const i = setInterval(() => fetchNow(isMobile ? anchorDay : weekStart), 30_000)
+    const i = setInterval(() => fetchForRange(weekStart), 30_000)
     return () => clearInterval(i)
-  }, [weekStart, anchorDay, isMobile, fetchNow])
+  }, [weekStart, fetchForRange])
 
   useEffect(() => {
     const i = setInterval(() => setTick(Date.now()), 15_000)
@@ -71,41 +62,25 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
 
   // Desktop: 7 days from weekStart
   const desktopDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
-
   // Mobile: 3 days centered on anchorDay
   const mobileDays = [addDays(anchorDay, -1), anchorDay, addDays(anchorDay, 1)]
 
-  const goToPrev = () => {
-    if (isMobile) {
-      const next = addDays(anchorDay, -1)
-      setAnchorDay(next)
-      fetchNow(next)
-    } else {
-      const p = addDays(weekStart, -7); setWeekStart(p); fetchNow(p)
-    }
-  }
-  const goToNext = () => {
-    if (isMobile) {
-      const next = addDays(anchorDay, 1)
-      setAnchorDay(next)
-      fetchNow(next)
-    } else {
-      const n = addDays(weekStart, 7); setWeekStart(n); fetchNow(n)
-    }
-  }
-  const goToToday = () => {
-    if (isMobile) {
-      const t = startOfDay(new Date())
-      setAnchorDay(t)
-      fetchNow(t)
-    } else {
-      const t = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
-      setWeekStart(t); fetchNow(t)
-    }
+  // Desktop nav
+  const goDesktopPrev = () => { const p = addDays(weekStart, -7); setWeekStart(p); fetchForRange(p) }
+  const goDesktopNext = () => { const n = addDays(weekStart, 7); setWeekStart(n); fetchForRange(n) }
+  const goDesktopToday = () => {
+    const t = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
+    setWeekStart(t); fetchForRange(t)
   }
 
+  // Mobile nav
+  const goMobilePrev = () => { const p = addDays(anchorDay, -1); setAnchorDay(p); fetchForRange(p) }
+  const goMobileNext = () => { const n = addDays(anchorDay, 1); setAnchorDay(n); fetchForRange(n) }
+  const goMobileToday = () => { const t = startOfDay(new Date()); setAnchorDay(t); fetchForRange(t) }
+
   const isCurrentWeek = isSameDay(weekStart, startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })))
-  const isToday_ = isSameDay(anchorDay, startOfDay(new Date()))
+  const isTodayAnchor = isSameDay(anchorDay, startOfDay(new Date()))
+
   const weekLabel = `${format(weekStart, "MMM d")} – ${format(addDays(weekStart, 6), "MMM d, yyyy")}`
   const mobileDateLabel = format(anchorDay, "MMMM yyyy")
 
@@ -125,7 +100,6 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
     return members.find(u => u.gcalColorId === e.colorId)
   }
 
-  // Swipe handlers
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
@@ -135,13 +109,11 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
     const dx = e.changedTouches[0].clientX - touchStartX.current
     const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
     if (Math.abs(dx) > 60 && dy < 80) {
-      dx < 0 ? goToNext() : goToPrev()
+      dx < 0 ? goMobileNext() : goMobilePrev()
     }
     touchStartX.current = null
     touchStartY.current = null
   }
-
-  const activeDays = isMobile ? mobileDays : desktopDays
 
   function DayColumn({ day }: { day: Date }) {
     const dayEvents = getEventsForDay(day)
@@ -151,10 +123,7 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
     const eventCount = dayEvents.length
 
     return (
-      <div
-        className={`flex flex-col flex-1 min-w-0 ${today ? "bg-amber-50/50 dark:bg-amber-900/10" : "bg-[#FAF9F7] dark:bg-gray-950"}`}
-      >
-        {/* Day header */}
+      <div className={`flex flex-col flex-1 min-w-0 ${today ? "bg-amber-50/50 dark:bg-amber-900/10" : "bg-[#FAF9F7] dark:bg-gray-950"}`}>
         <div
           className="shrink-0 px-2 pt-3 pb-2 cursor-pointer"
           onClick={() => setModal({ mode: "create", defaultDate: format(day, "yyyy-MM-dd") })}
@@ -176,27 +145,21 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
           </div>
         </div>
 
-        {/* All-day pills */}
         {allDayEvents.length > 0 && (
           <div className="px-1.5 pb-1.5 flex flex-col gap-1 shrink-0">
             {allDayEvents.map(e => {
               const user = userForEvent(e)
               const color = user?.color ?? "#64748b"
               return (
-                <button
-                  key={e.id}
-                  onClick={() => setModal({ mode: "edit", event: e })}
-                  className="w-full text-left rounded-xl px-2 py-1 text-xs font-bold truncate text-white transition-all hover:brightness-95"
+                <button key={e.id} onClick={() => setModal({ mode: "edit", event: e })}
+                  className="w-full text-left rounded-xl px-2 py-1 text-xs font-bold truncate text-white"
                   style={{ backgroundColor: color }}
-                >
-                  {e.title}
-                </button>
+                >{e.title}</button>
               )
             })}
           </div>
         )}
 
-        {/* Timed event cards */}
         <div className="flex flex-col gap-1.5 px-1.5 pb-3 overflow-y-auto flex-1">
           {timedEvents.map(e => {
             const user = userForEvent(e)
@@ -204,29 +167,19 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
             const rgb = hexToRgb(color)
             const emoji = user ? getAvatar(user.id) : ""
             const initial = user?.name?.[0]?.toUpperCase() ?? ""
-
             return (
-              <button
-                key={e.id}
-                onClick={() => setModal({ mode: "edit", event: e })}
-                className="w-full text-left rounded-2xl p-2 transition-all hover:brightness-95 active:brightness-90 shrink-0"
-                style={{
-                  backgroundColor: `rgba(${rgb}, 0.13)`,
-                  borderLeft: `3px solid ${color}`,
-                }}
+              <button key={e.id} onClick={() => setModal({ mode: "edit", event: e })}
+                className="w-full text-left rounded-2xl p-2 transition-all active:brightness-90 shrink-0"
+                style={{ backgroundColor: `rgba(${rgb}, 0.13)`, borderLeft: `3px solid ${color}` }}
               >
-                <p className="text-xs font-extrabold leading-tight truncate" style={{ color }}>
-                  {e.title}
-                </p>
+                <p className="text-xs font-extrabold leading-tight truncate" style={{ color }}>{e.title}</p>
                 <div className="flex items-center justify-between mt-0.5">
                   <p className="text-xs font-semibold leading-none" style={{ color, opacity: 0.7 }}>
                     {format(new Date(e.start), "h:mm")}–{format(new Date(e.end), "h:mm a")}
                   </p>
                   {(emoji || initial) && (
-                    <div
-                      className="w-4 h-4 rounded-full flex items-center justify-center text-white font-bold shrink-0"
-                      style={{ backgroundColor: color, fontSize: "8px" }}
-                    >
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center text-white font-bold shrink-0"
+                      style={{ backgroundColor: color, fontSize: "8px" }}>
                       {emoji || initial}
                     </div>
                   )}
@@ -239,13 +192,10 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
               </button>
             )
           })}
-
           <button
             onClick={() => setModal({ mode: "create", defaultDate: format(day, "yyyy-MM-dd") })}
-            className="w-full text-left rounded-xl px-2 py-1.5 text-xs font-semibold text-stone-300 dark:text-gray-700 hover:text-stone-400 dark:hover:text-gray-500 hover:bg-stone-100 dark:hover:bg-gray-800/50 transition-all shrink-0"
-          >
-            + Add
-          </button>
+            className="w-full text-left rounded-xl px-2 py-1.5 text-xs font-semibold text-stone-300 dark:text-gray-700 hover:text-stone-400 hover:bg-stone-100 dark:hover:bg-gray-800/50 transition-all shrink-0"
+          >+ Add</button>
         </div>
       </div>
     )
@@ -253,36 +203,54 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
 
   return (
     <>
+      {/* ── Mobile layout (< md) ── */}
       <div
-        className="flex flex-col flex-1 overflow-hidden"
+        className="flex md:hidden flex-col flex-1 overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Nav bar */}
-        <div className="flex items-center justify-between px-4 md:px-8 py-3 shrink-0 border-b border-stone-200 dark:border-gray-800 bg-[#FAF9F7] dark:bg-gray-950">
-          <button onClick={goToPrev} className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-white text-2xl flex items-center justify-center font-bold hover:bg-stone-200 transition-colors">‹</button>
+        <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-stone-200 dark:border-gray-800 bg-[#FAF9F7] dark:bg-gray-950">
+          <button onClick={goMobilePrev} className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-white text-2xl flex items-center justify-center font-bold">‹</button>
           <div className="text-center">
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">
-              {isMobile ? mobileDateLabel : weekLabel}
-            </p>
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{mobileDateLabel}</p>
             <div className="flex items-center justify-center gap-3 mt-0.5">
               <p className={`text-xs font-semibold ${stale ? "text-amber-500" : "text-stone-400"}`}>
                 {stale ? "Sync stale" : `Synced ${format(new Date(lastFetchedAt), "h:mm a")}`}
               </p>
-              {(isMobile ? !isToday_ : !isCurrentWeek) && (
-                <button onClick={goToToday} className="text-xs text-blue-500 font-bold underline underline-offset-2">Today</button>
+              {!isTodayAnchor && (
+                <button onClick={goMobileToday} className="text-xs text-blue-500 font-bold underline underline-offset-2">Today</button>
               )}
             </div>
           </div>
-          <button onClick={goToNext} className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-white text-2xl flex items-center justify-center font-bold hover:bg-stone-200 transition-colors">›</button>
+          <button onClick={goMobileNext} className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-white text-2xl flex items-center justify-center font-bold">›</button>
         </div>
-
-        {/* Day columns */}
         <div className="flex-1 overflow-auto">
-          <div className={`flex h-full divide-x divide-stone-200 dark:divide-gray-800 ${isMobile ? "" : "min-w-[700px]"}`}>
-            {activeDays.map(day => (
-              <DayColumn key={day.toISOString()} day={day} />
-            ))}
+          <div className="flex h-full divide-x divide-stone-200 dark:divide-gray-800">
+            {mobileDays.map(day => <DayColumn key={day.toISOString()} day={day} />)}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Desktop layout (>= md) ── */}
+      <div className="hidden md:flex flex-col flex-1 overflow-hidden">
+        <div className="flex items-center justify-between px-8 py-3 shrink-0 border-b border-stone-200 dark:border-gray-800 bg-[#FAF9F7] dark:bg-gray-950">
+          <button onClick={goDesktopPrev} className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-white text-2xl flex items-center justify-center font-bold hover:bg-stone-200 transition-colors">‹</button>
+          <div className="text-center">
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{weekLabel}</p>
+            <div className="flex items-center justify-center gap-3 mt-0.5">
+              <p className={`text-xs font-semibold ${stale ? "text-amber-500" : "text-stone-400"}`}>
+                {stale ? "Sync stale" : `Synced ${format(new Date(lastFetchedAt), "h:mm a")}`}
+              </p>
+              {!isCurrentWeek && (
+                <button onClick={goDesktopToday} className="text-xs text-blue-500 font-bold underline underline-offset-2">This week</button>
+              )}
+            </div>
+          </div>
+          <button onClick={goDesktopNext} className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-gray-800 text-stone-500 dark:text-white text-2xl flex items-center justify-center font-bold hover:bg-stone-200 transition-colors">›</button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          <div className="flex min-w-[700px] h-full divide-x divide-stone-200 dark:divide-gray-800">
+            {desktopDays.map(day => <DayColumn key={day.toISOString()} day={day} />)}
           </div>
         </div>
       </div>
@@ -295,7 +263,7 @@ export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewPr
           event={modal.mode === "edit" ? modal.event : undefined}
           defaultDate={modal.mode === "create" ? modal.defaultDate : undefined}
           onClose={() => setModal(null)}
-          onSaved={() => fetchNow(isMobile ? anchorDay : weekStart)}
+          onSaved={() => fetchForRange(weekStart)}
         />
       )}
     </>
