@@ -1,5 +1,9 @@
 import type { AuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import { kv } from "@/lib/redis"
+
+// Redis key where we store the owner's refresh token for kiosk use
+const KIOSK_TOKEN_KEY = "cocalendar:kiosk_refresh_token"
 
 export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -22,6 +26,14 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
+        // Fresh login — persist refresh token to Redis for kiosk use
+        if (account.refresh_token) {
+          try {
+            await kv.set(KIOSK_TOKEN_KEY, account.refresh_token)
+          } catch {
+            // Non-fatal — kiosk will fall back gracefully
+          }
+        }
         return {
           ...token,
           accessToken: account.access_token,
