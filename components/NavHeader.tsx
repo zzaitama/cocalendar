@@ -10,7 +10,7 @@ import { useSleep } from "@/components/SleepProvider"
 import type { WeatherData } from "@/lib/weather"
 
 interface NavHeaderProps {
-  activePage: "day" | "week" | "month" | "list" | "chores"
+  activePage: "day" | "week" | "month" | "list" | "chores" | "meal-planner"
 }
 
 export function NavHeader({ activePage }: NavHeaderProps) {
@@ -43,6 +43,7 @@ export function NavHeader({ activePage }: NavHeaderProps) {
     ["Month", "/month", "month"],
     ["List", "/list", "list"],
     ["Chores", "/chores", "chores"],
+    ["Meals", "/meal-planner", "meal-planner"],
   ] as const
 
   return (
