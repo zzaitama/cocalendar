@@ -18,7 +18,7 @@
 
 ## What it is
 
-CoCalendar is a household calendar app built for the Mei family. It runs on a **22" Elo touchscreen** mounted in the kitchen, on iPhones as a **PWA**, and in the browser on desktop — all synced to Google Calendar in real time.
+CoCalendar is a household calendar app built for the family. It runs on a **22" Elo touchscreen** mounted in the kitchen, on iPhones as a **PWA**, and in the browser on desktop — all synced to Google Calendar in real time.
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -57,8 +57,8 @@ Defined in `lib/config.ts` — Google Calendar `colorId` is the source of truth 
 |---|---|---|---|
 | Daddy | 🟢 Green | `#33B679` | Sage (2) |
 | Mommy | 🔵 Blue | `#039BE5` | Peacock (7) |
-| Colette | 🟣 Purple | `#9C27B0` | Grape (3) |
-| Monti | 🟡 Yellow | `#F6BF26` | Banana (5) |
+| Daughter | 🟣 Purple | `#9C27B0` | Grape (3) |
+| Son | 🟡 Yellow | `#F6BF26` | Banana (5) |
 | Family | 🩵 Aqua | `#00BCD4` | Peacock (10) |
 
 ---
