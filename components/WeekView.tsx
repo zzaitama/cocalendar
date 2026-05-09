@@ -16,7 +16,6 @@ type ModalState =
 
 interface WeekViewProps {
   initialEvents: CalendarEvent[]
-  initialWeekStart: string
 }
 
 const START_HOUR = 6
@@ -433,15 +432,15 @@ function MobileWeekGrid({
 }
 
 // ── Main WeekView ─────────────────────────────────────────────
-export function WeekView({ initialEvents, initialWeekStart }: WeekViewProps) {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(startOfDay(new Date(initialWeekStart)), { weekStartsOn: 1 }))
+export function WeekView({ initialEvents }: WeekViewProps) {
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(startOfDay(new Date()), { weekStartsOn: 1 }))
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
   const [lastFetchedAt, setLastFetchedAt] = useState<number>(Date.now())
   const [tick, setTick] = useState<number>(Date.now())
   const [modal, setModal] = useState<ModalState | null>(null)
   const [selectedPeople, setSelectedPeople] = useState<string[]>([])
   const [selectedDay, setSelectedDay] = useState<Date>(() => {
-    const ws = startOfDay(new Date(initialWeekStart))
+    const ws = startOfWeek(startOfDay(new Date()), { weekStartsOn: 1 })
     const days = Array.from({ length: 7 }, (_, i) => addDays(ws, i))
     return days.find(d => isToday(d)) ?? ws
   })

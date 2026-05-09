@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
-import { startOfWeek } from "date-fns"
 import { authOptions } from "@/lib/auth"
 import { getEvents } from "@/lib/google-calendar"
 import { weekRange } from "@/lib/utils"
@@ -20,12 +19,10 @@ export default async function WeekPage() {
     console.error("Failed to fetch events for Week View:", error)
   }
 
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
-
   return (
     <div className="h-screen overflow-hidden bg-[#FAF9F7] dark:bg-gray-950 flex flex-col">
       <NavHeader activePage="week" />
-      <WeekViewToggle initialEvents={events} initialWeekStart={weekStart} />
+      <WeekViewToggle initialEvents={events} />
     </div>
   )
 }

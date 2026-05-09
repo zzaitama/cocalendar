@@ -13,7 +13,6 @@ type ModalState = { mode: "create"; defaultDate?: string } | { mode: "edit"; eve
 
 interface CardWeekViewProps {
   initialEvents: CalendarEvent[]
-  initialWeekStart: string
 }
 
 function hexToRgb(hex: string): string {
@@ -23,10 +22,10 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`
 }
 
-export function CardWeekView({ initialEvents, initialWeekStart }: CardWeekViewProps) {
+export function CardWeekView({ initialEvents }: CardWeekViewProps) {
   const { members } = useFamily()
   const { getAvatar } = useAvatar()
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(startOfDay(new Date(initialWeekStart)), { weekStartsOn: 1 }))
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(startOfDay(new Date()), { weekStartsOn: 1 }))
   // Mobile anchor: center day of the 3-day view
   const [anchorDay, setAnchorDay] = useState(() => startOfDay(new Date()))
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)

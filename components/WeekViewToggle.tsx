@@ -7,12 +7,11 @@ import type { CalendarEvent } from "@/types"
 
 interface WeekViewToggleProps {
   initialEvents: CalendarEvent[]
-  initialWeekStart: string
 }
 
 type ViewMode = "grid" | "cards"
 
-export function WeekViewToggle({ initialEvents, initialWeekStart }: WeekViewToggleProps) {
+export function WeekViewToggle({ initialEvents }: WeekViewToggleProps) {
   const [mode, setMode] = useState<ViewMode>(() => {
     if (typeof window === "undefined") return "grid"
     const saved = localStorage.getItem("week-view-mode")
@@ -55,15 +54,15 @@ export function WeekViewToggle({ initialEvents, initialWeekStart }: WeekViewTogg
 
       {/* Mobile: always CardWeekView, no toggle needed */}
       <div className="flex md:hidden flex-col flex-1 overflow-hidden">
-        <CardWeekView initialEvents={initialEvents} initialWeekStart={initialWeekStart} />
+        <CardWeekView initialEvents={initialEvents} />
       </div>
 
       {/* Desktop: respect saved mode preference */}
       <div className="hidden md:flex flex-col flex-1 overflow-hidden">
         {mode === "grid" ? (
-          <WeekView initialEvents={initialEvents} initialWeekStart={initialWeekStart} />
+          <WeekView initialEvents={initialEvents} />
         ) : (
-          <CardWeekView initialEvents={initialEvents} initialWeekStart={initialWeekStart} />
+          <CardWeekView initialEvents={initialEvents} />
         )}
       </div>
 
