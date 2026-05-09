@@ -248,7 +248,7 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
           {/* Mobile: prev/next arrows */}
           <button
             onClick={() => navigateDay(-1)}
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-stone-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-bold text-lg shrink-0"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-stone-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-bold text-lg shrink-0"
             aria-label="Previous day"
           >‹</button>
 
@@ -264,7 +264,7 @@ export function TodayView({ initialEvents, targetDate }: TodayViewProps) {
 
           <button
             onClick={() => navigateDay(1)}
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-stone-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-bold text-lg shrink-0"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-stone-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-bold text-lg shrink-0"
             aria-label="Next day"
           >›</button>
 
