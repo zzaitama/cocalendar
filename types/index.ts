@@ -44,6 +44,7 @@ export interface ShoppingStore {
 
 export interface ShoppingListData {
   stores: ShoppingStore[]
+  history?: string[]
 }
 
 export interface PhotoMeta {

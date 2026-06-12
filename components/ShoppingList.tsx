@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import type { ShoppingListData, ShoppingStore } from "@/types"
 
 const CARD_COLORS = [
@@ -101,30 +101,44 @@ interface StoreCardProps {
   onToggleItem: (itemId: string) => void
   onDeleteItem: (itemId: string) => void
   onAddItem: (text: string) => void
+  onClearDone: () => void
   onSettingsOpen: () => void
   onDragStart: () => void
   onDragOver: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   isDraggingOver: boolean
+  isDark: boolean
+  suggestions: string[]
 }
 
-function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onSettingsOpen, onDragStart, onDragOver, onDrop, isDraggingOver }: StoreCardProps) {
+function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onClearDone, onSettingsOpen, onDragStart, onDragOver, onDrop, isDraggingOver, isDark, suggestions }: StoreCardProps) {
   const [newItem, setNewItem] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
   const cardColor = getCardColor(store.color)
-  const isDark = document.documentElement.classList.contains("dark")
   const cardBg = isDark ? cardColor.dark : cardColor.bg
   const accentColor = cardColor.accent
 
-  function handleAdd() {
-    if (!newItem.trim()) return
-    onAddItem(newItem.trim())
+  function handleAdd(text?: string) {
+    const t = (text ?? newItem).trim()
+    if (!t) return
+    onAddItem(t)
     setNewItem("")
     setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   const incomplete = store.items.filter(i => !i.checked)
   const complete = store.items.filter(i => i.checked)
+
+  const query = newItem.trim().toLowerCase()
+  const inList = new Set(incomplete.map(i => i.text.toLowerCase()))
+  const matches = query
+    ? suggestions
+        .filter(s => {
+          const l = s.toLowerCase()
+          return l.includes(query) && l !== query && !inList.has(l)
+        })
+        .slice(0, 3)
+    : []
 
   return (
     <div
@@ -177,7 +191,7 @@ function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onSettingsOpe
             </button>
             <span className="flex-1 text-gray-950 dark:text-white text-base leading-tight">{item.text}</span>
             <button onClick={() => onDeleteItem(item.id)}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-400 transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
@@ -186,7 +200,13 @@ function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onSettingsOpe
         ))}
         {complete.length > 0 && (
           <>
-            <div className="h-px bg-black/10 dark:bg-white/10 my-1" />
+            <div className="flex items-center gap-2 my-1">
+              <div className="h-px flex-1 bg-black/10 dark:bg-white/10" />
+              <button onClick={onClearDone}
+                className="text-xs font-semibold text-gray-400 hover:text-red-400 transition-colors shrink-0 py-1">
+                Clear done ({complete.length})
+              </button>
+            </div>
             {complete.map(item => (
               <div key={item.id} className="flex items-center gap-3 py-1.5 group">
                 <button onClick={() => onToggleItem(item.id)}
@@ -198,7 +218,7 @@ function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onSettingsOpe
                 </button>
                 <span className="flex-1 text-gray-400 text-base line-through leading-tight">{item.text}</span>
                 <button onClick={() => onDeleteItem(item.id)}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-400 transition-colors">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                   </svg>
@@ -208,6 +228,18 @@ function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onSettingsOpe
           </>
         )}
       </div>
+
+      {/* Quick-add suggestions */}
+      {matches.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {matches.map(s => (
+            <button key={s} onClick={() => handleAdd(s)}
+              className="px-3 py-1.5 rounded-full text-sm font-medium bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/20 transition-colors">
+              + {s}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Add item input */}
       <div className="flex gap-2 pt-1">
@@ -220,7 +252,7 @@ function StoreCard({ store, onToggleItem, onDeleteItem, onAddItem, onSettingsOpe
           placeholder="Add item…"
           className="flex-1 bg-black/5 dark:bg-white/5 text-gray-950 dark:text-white text-base rounded-xl px-3 py-2.5 outline-none placeholder:text-gray-400"
         />
-        <button onClick={handleAdd} disabled={!newItem.trim()}
+        <button onClick={() => handleAdd()} disabled={!newItem.trim()}
           className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-30 transition-colors"
           style={{ backgroundColor: accentColor }}>
           Add
@@ -246,13 +278,73 @@ export function ShoppingList({ initialData }: ShoppingListProps) {
   const [syncFailed, setSyncFailed] = useState(false)
   const dragId = useRef<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const [history, setHistory] = useState<string[]>(initialData.history ?? [])
+  const [isDark, setIsDark] = useState(false)
+  const lastEditAt = useRef(0)
+  const storesRef = useRef(stores)
+  const historyRef = useRef(history)
+  const settingsForRef = useRef(settingsFor)
 
-  const saveNow = useCallback(async (updated: ShoppingStore[]) => {
+  useEffect(() => { storesRef.current = stores }, [stores])
+  useEffect(() => { historyRef.current = history }, [history])
+  useEffect(() => { settingsForRef.current = settingsFor }, [settingsFor])
+
+  // Track dark mode reactively (reading document during render breaks SSR/hydration)
+  useEffect(() => {
+    const el = document.documentElement
+    const update = () => setIsDark(el.classList.contains("dark"))
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(el, { attributes: true, attributeFilter: ["class"] })
+    return () => observer.disconnect()
+  }, [])
+
+  // Cross-device sync: poll every 20s + refresh when the tab regains focus.
+  // Skipped while the user is typing, dragging, editing settings, or just saved.
+  useEffect(() => {
+    let cancelled = false
+
+    async function refresh() {
+      if (document.visibilityState === "hidden") return
+      if (Date.now() - lastEditAt.current < 5000) return
+      if (dragId.current || settingsForRef.current) return
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
+      try {
+        const res = await fetch("/api/shopping")
+        if (!res.ok) return
+        const data: ShoppingListData = await res.json()
+        if (cancelled || Date.now() - lastEditAt.current < 5000) return
+        if (Array.isArray(data.stores) && JSON.stringify(data.stores) !== JSON.stringify(storesRef.current)) {
+          setStores(data.stores)
+        }
+        if (Array.isArray(data.history) && JSON.stringify(data.history) !== JSON.stringify(historyRef.current)) {
+          setHistory(data.history)
+        }
+        setSyncFailed(false)
+      } catch {
+        // offline — keep showing local state
+      }
+    }
+
+    const interval = setInterval(refresh, 20000)
+    const onFocus = () => { if (document.visibilityState === "visible") void refresh() }
+    document.addEventListener("visibilitychange", onFocus)
+    window.addEventListener("focus", onFocus)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onFocus)
+      window.removeEventListener("focus", onFocus)
+    }
+  }, [])
+
+  const saveNow = useCallback(async (updated: ShoppingStore[], updatedHistory: string[]) => {
     try {
       const res = await fetch("/api/shopping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stores: updated }),
+        body: JSON.stringify({ stores: updated, history: updatedHistory }),
       })
       if (!res.ok) throw new Error()
       setSyncFailed(false)
@@ -261,9 +353,11 @@ export function ShoppingList({ initialData }: ShoppingListProps) {
     }
   }, [])
 
-  function updateStores(updated: ShoppingStore[]) {
+  function updateStores(updated: ShoppingStore[], updatedHistory: string[] = historyRef.current) {
+    lastEditAt.current = Date.now()
     setStores(updated)
-    void saveNow(updated)
+    if (updatedHistory !== historyRef.current) setHistory(updatedHistory)
+    void saveNow(updated, updatedHistory)
   }
 
   function toggleItem(storeId: string, itemId: string) {
@@ -279,8 +373,16 @@ export function ShoppingList({ initialData }: ShoppingListProps) {
   }
 
   function addItem(storeId: string, text: string) {
+    const t = text.trim()
+    const updatedHistory = [t, ...historyRef.current.filter(h => h.toLowerCase() !== t.toLowerCase())].slice(0, 200)
     updateStores(stores.map(s => s.id !== storeId ? s : {
-      ...s, items: [...s.items, { id: crypto.randomUUID(), text, checked: false }]
+      ...s, items: [...s.items, { id: crypto.randomUUID(), text: t, checked: false }]
+    }), updatedHistory)
+  }
+
+  function clearDone(storeId: string) {
+    updateStores(stores.map(s => s.id !== storeId ? s : {
+      ...s, items: s.items.filter(i => !i.checked)
     }))
   }
 
@@ -349,11 +451,14 @@ export function ShoppingList({ initialData }: ShoppingListProps) {
               onToggleItem={itemId => toggleItem(store.id, itemId)}
               onDeleteItem={itemId => deleteItem(store.id, itemId)}
               onAddItem={text => addItem(store.id, text)}
+              onClearDone={() => clearDone(store.id)}
               onSettingsOpen={() => setSettingsFor(store.id)}
               onDragStart={() => handleDragStart(store.id)}
               onDragOver={e => handleDragOver(e, store.id)}
               onDrop={e => handleDrop(e, store.id)}
               isDraggingOver={dragOverId === store.id}
+              isDark={isDark}
+              suggestions={history}
             />
           </div>
         ))}

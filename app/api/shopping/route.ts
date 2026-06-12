@@ -34,6 +34,12 @@ function isValidShoppingListData(body: unknown): body is ShoppingListData {
       if (typeof i.checked !== "boolean") return false
     }
   }
+  if (b.history !== undefined) {
+    if (!Array.isArray(b.history) || b.history.length > 300) return false
+    for (const h of b.history) {
+      if (typeof h !== "string" || h.length > 500) return false
+    }
+  }
   return true
 }
 
